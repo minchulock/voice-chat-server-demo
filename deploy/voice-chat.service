@@ -1,0 +1,22 @@
+[Unit]
+Description=VOICE24 AI server-client demo
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=voicechat
+Group=voicechat
+WorkingDirectory=/opt/voice-chat-server-demo
+EnvironmentFile=/opt/voice-chat-server-demo/.env
+ExecStart=/opt/voice-chat-server-demo/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1 --proxy-headers --forwarded-allow-ips=127.0.0.1
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/voice-chat-server-demo
+
+[Install]
+WantedBy=multi-user.target
