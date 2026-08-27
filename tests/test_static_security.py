@@ -23,3 +23,10 @@ def test_browser_defaults_match_server_defaults():
     assert "modelName:'google/gemma-4-31B-it'" in script
     assert "ttsSpeed:1.6" in script
     assert "voiceChatSettingsV2" in script
+
+
+def test_answer_api_settings_have_strict_hidden_rule():
+    stylesheet = (ROOT / "static" / "settings-fix.css").read_text(encoding="utf-8")
+    script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
+    assert "display: none !important" in stylesheet
+    assert "classList.toggle('selected',input.checked)" in script

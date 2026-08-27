@@ -1,0 +1,14 @@
+.settings-panel [hidden] {
+  display: none !important;
+}
+
+.segments label {
+  cursor: pointer;
+}
+
+.segments label.selected span {
+  color: var(--blue);
+  border-color: var(--blue);
+  background: #eef5ff;
+  box-shadow: 0 0 0 2px #2878f312;
+}
