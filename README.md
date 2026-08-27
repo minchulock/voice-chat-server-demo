@@ -63,9 +63,9 @@ CLOVA_API_KEY=실제_API_KEY
 STT_API_URL=https://gateway-api.clova-studio-gov.com/v1/audio/transcriptions
 TTS_API_URL=https://gateway-api.clova-studio-gov.com/v1/audio/speech
 AGENT_BASE_URL=https://gateway-api.clova-studio-gov.com
-AGENT_SLUG=vcNrFIgDTM6Sala0kkwkfg
+AGENT_SLUG=Dyyn7G5jTCapQqsXAIoVxg
 MODEL_BASE_URL=https://gateway-api.clova-studio-gov.com/api/v1
-MODEL_NAME=HCX-GOV-THINK
+MODEL_NAME=google/gemma-4-31B-it
 ```
 
 서버를 실행합니다.
@@ -160,6 +160,17 @@ curl https://voice.example.go.kr/api/health
 cd voice-chat-server-demo
 git pull --ff-only
 sudo ./deploy/update.sh
+```
+
+기존 서버의 `.env` 값은 코드 기본값보다 우선합니다. 이번 기본 설정을 기존 배포에도 적용하려면 다음 값을 수정하고, `MODEL_SYSTEM_PROMPT`를 제거하거나 새 프롬프트로 교체하세요.
+
+```dotenv
+AGENT_SLUG=Dyyn7G5jTCapQqsXAIoVxg
+MODEL_NAME=google/gemma-4-31B-it
+```
+
+```bash
+sudo systemctl restart voice-chat
 ```
 
 ## 로그와 장애 진단
