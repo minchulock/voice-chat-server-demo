@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Spring Boot 음성 대화 서비스 구현 가이드</title>
+  <style>
+    :root{--ink:#17243b;--muted:#63718a;--line:#dbe6f5;--blue:#2878f3;--mint:#22c7a0;--navy:#0e2855;--paper:#fff;--code:#101a2e;--soft:#f5f8fd;--warn:#fff7df}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--soft);color:var(--ink);font:15px/1.72 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif}a{color:inherit}.layout{display:grid;grid-template-columns:280px minmax(0,1fr);min-height:100vh}.side{position:sticky;top:0;height:100vh;padding:34px 28px;background:linear-gradient(160deg,#0d2855,#174693);color:#fff;overflow:auto}.brand{display:flex;gap:12px;align-items:center;margin-bottom:35px}.brand i{display:grid;place-items:center;width:43px;height:43px;border-radius:50%;background:var(--mint);font-style:normal;font-weight:900}.brand b{font-size:20px}.side small{color:#bcd2f6}.side nav{display:grid;gap:5px}.side nav a{text-decoration:none;padding:8px 10px;border-radius:8px;color:#d7e6ff}.side nav a:hover{background:#ffffff18;color:#fff}.content{width:min(1120px,100%);padding:64px 62px 120px}.hero{padding:48px;border-radius:24px;background:linear-gradient(135deg,#fff 15%,#eef5ff);border:1px solid var(--line);box-shadow:0 20px 50px #17345d12}.eyebrow{color:var(--blue);font-size:12px;font-weight:900;letter-spacing:.18em}.hero h1{max-width:800px;margin:10px 0;font-size:42px;line-height:1.22;letter-spacing:-.04em}.hero p{max-width:780px;color:var(--muted);font-size:18px}.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}.pill{padding:7px 12px;border-radius:99px;background:#fff;border:1px solid var(--line);font-weight:700;font-size:13px}section{padding-top:64px}h2{font-size:29px;letter-spacing:-.03em;margin:0 0 18px}h3{font-size:20px;margin:34px 0 12px}p,li{color:#43516a}.lead{font-size:17px}.callout{padding:18px 22px;border-left:4px solid var(--mint);border-radius:8px;background:#edfcf8}.warn{border-color:#f3aa2b;background:var(--warn)}.diagram{overflow:auto;padding:30px;border:1px solid var(--line);border-radius:18px;background:#fff}.flow{display:flex;min-width:860px;align-items:center;gap:10px}.node{flex:1;min-height:105px;padding:17px;border-radius:14px;background:#f5f9ff;border:1px solid #cfe0f7}.node.client{border-top:4px solid var(--mint)}.node.server{border-top:4px solid var(--blue)}.node.api{border-top:4px solid #7b61ff}.node b,.node span{display:block}.node span{font-size:12px;color:var(--muted)}.arrow{color:var(--blue);font-size:25px;font-weight:900}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{padding:22px;border:1px solid var(--line);border-radius:16px;background:#fff}.card h3{margin-top:0}.card code{color:var(--blue)}table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);font-size:14px}th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#eef5ff}pre{position:relative;margin:14px 0 26px;padding:22px;overflow:auto;border-radius:14px;background:var(--code);color:#dce9ff;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;tab-size:2}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.tree{white-space:pre-wrap}.steps{counter-reset:item;display:grid;gap:14px;padding:0}.steps li{list-style:none;position:relative;padding:18px 18px 18px 58px;background:#fff;border:1px solid var(--line);border-radius:14px}.steps li:before{counter-increment:item;content:counter(item);position:absolute;left:17px;top:17px;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;font-weight:800}.checklist li{margin:8px 0}.footer{margin-top:80px;padding-top:24px;border-top:1px solid var(--line);color:var(--muted)}@media(max-width:900px){.layout{display:block}.side{position:relative;height:auto}.side nav{grid-template-columns:repeat(2,1fr)}.content{padding:34px 20px 80px}.hero{padding:28px}.hero h1{font-size:31px}.grid{grid-template-columns:1fr}}
+    table{display:block;max-width:100%;overflow-x:auto}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="side">
+    <div class="brand"><i>V</i><div><b>VOICE24</b><br><small>Java Migration Guide</small></div></div>
+    <nav>
+      <a href="#goal">1. 목표와 책임 분리</a><a href="#flow">2. 전체 처리 흐름</a>
+      <a href="#contract">3. API 계약</a><a href="#project">4. 프로젝트 구성</a>
+      <a href="#server">5. Spring 서버</a><a href="#browser">6. 브라우저 구현</a>
+      <a href="#prefetch">7. 문장 선행 합성</a><a href="#sse">8. Audio와 SSE</a>
+      <a href="#session">9. 세션과 인터럽트</a><a href="#deploy">10. 배포·점검</a>
+    </nav>
+  </aside>
+  <main class="content">
+    <header class="hero">
+      <div class="eyebrow">SPRING BOOT 3 · JAVA 21 · WEBFLUX</div>
+      <h1>브라우저 음성 대화를 Spring Boot로 구현하는 방법</h1>
+      <p>기존 Python 데모의 Browser → Mic → VAD → in-memory audio → HTTPS 흐름과, Browser ← sentence prefetch audio/SSE ← Speaker 흐름을 Java 개발자가 재구현할 수 있도록 정리한 실전 가이드입니다.</p>
+      <div class="pills"><span class="pill">API Key는 서버에만</span><span class="pill">오디오 파일 저장 없음</span><span class="pill">문장 단위 TTS prefetch</span><span class="pill">멀티턴 Session</span><span class="pill">Barge-in</span></div>
+    </header>
+
+    <section id="goal">
+      <h2>1. 목표와 책임 분리</h2>
+      <p class="lead">핵심은 브라우저를 음성 입출력 장치로, Spring Boot를 인증정보를 보관하는 API 프록시와 세션 오케스트레이터로 두는 것입니다.</p>
+      <div class="grid">
+        <article class="card"><h3>Browser</h3><p>마이크 권한, VAD, MediaRecorder, 메모리 Blob, 화면 상태, WAV 재생, SSE 해석, TTS 중 사용자 발화 감지를 담당합니다.</p></article>
+        <article class="card"><h3>Spring Boot</h3><p>API 키 보관, STT multipart 변환, Agent/Model 호출, 대화 이력, TTS 바이트 프록시, 입력 검증과 오류 표준화를 담당합니다.</p></article>
+      </div>
+      <div class="callout"><strong>중요:</strong> 브라우저에서 외부 CLOVA API를 직접 호출하지 않습니다. API 키는 <code>application.yml</code>의 환경변수 참조로만 서버에 보관합니다.</div>
+    </section>
+
+    <section id="flow">
+      <h2>2. 전체 처리 흐름</h2>
+      <div class="diagram"><div class="flow">
+        <div class="node client"><b>Mic + VAD</b><span>getUserMedia<br>RMS 감지</span></div><div class="arrow">→</div>
+        <div class="node client"><b>Memory Blob</b><span>MediaRecorder<br>WebM/Opus</span></div><div class="arrow">→</div>
+        <div class="node server"><b>Spring API</b><span>raw binary 수신<br>multipart 변환</span></div><div class="arrow">→</div>
+        <div class="node api"><b>STT → Answer</b><span>Agent 또는 Model<br>멀티턴</span></div><div class="arrow">→</div>
+        <div class="node server"><b>TTS Proxy</b><span>문장별 요청<br>DataBuffer</span></div><div class="arrow">→</div>
+        <div class="node client"><b>Prefetch + Speaker</b><span>현재 문장 재생 중<br>다음 문장 합성</span></div>
+      </div></div>
+      <ol class="steps">
+        <li>세션 생성 후 브라우저가 마이크 스트림을 열고, AnalyserNode의 RMS 값으로 발화 시작과 종료를 판정합니다.</li>
+        <li>MediaRecorder가 만든 조각은 배열에만 보관하며, 발화 종료 시 Blob으로 합쳐 Spring의 <code>/api/stt</code>에 raw body로 전송합니다.</li>
+        <li>Spring은 메모리의 바이트를 multipart 파일 파트로 감싸 외부 STT API에 전달합니다. 디스크 저장은 필요 없습니다.</li>
+        <li>전사문을 Agent 또는 Model API에 보내 답변을 받고 세션 대화 이력을 갱신합니다.</li>
+        <li>브라우저가 답변을 문장으로 분리합니다. 첫 문장 TTS를 받고 재생하는 즉시 두 번째 문장 요청을 병렬로 시작합니다.</li>
+        <li>마지막 문장 재생이 끝나면 자동으로 다음 Turn VAD로 돌아갑니다. 재생 중 사용자 발화가 감지되면 TTS를 중단하고 바로 새 Turn을 녹음합니다.</li>
+      </ol>
+    </section>
+
+    <section id="contract">
+      <h2>3. 기존 데모와 동일하게 유지할 API 계약</h2>
+      <table><thead><tr><th>Method</th><th>URI</th><th>입력</th><th>출력</th></tr></thead><tbody>
+        <tr><td>POST</td><td><code>/api/sessions</code></td><td>없음</td><td><code>{sessionId, turn}</code></td></tr>
+        <tr><td>DELETE</td><td><code>/api/sessions/{id}</code></td><td>경로 ID</td><td><code>{ended, turn}</code></td></tr>
+        <tr><td>POST</td><td><code>/api/stt?model=...&amp;language=ko</code></td><td>raw WebM/WAV body</td><td><code>{transcript, model, processingMs}</code></td></tr>
+        <tr><td>POST</td><td><code>/api/chat</code></td><td>sessionId, message, provider 등 JSON</td><td><code>{answer, turn, provider, processingMs}</code></td></tr>
+        <tr><td>POST</td><td><code>/api/tts</code></td><td>input, model, speed, stream_format</td><td><code>audio/wav</code> 또는 <code>text/event-stream</code></td></tr>
+      </tbody></table>
+      <p class="callout warn"><strong>STT가 비스트리밍이어도 괜찮습니다.</strong> 한 Turn의 오디오를 메모리에 모아 전송하므로 서버 디스크에 WAV를 만들 필요가 없습니다. 다만 사용자가 말하는 동안 전사 결과가 나오지는 않으며, 발화 종료 후 네트워크와 STT 처리 시간이 추가됩니다.</p>
+    </section>
+
+    <section id="project">
+      <h2>4. Spring 프로젝트 구성</h2>
+      <pre class="tree">voice-chat-spring/
+├─ src/main/java/com/example/voice/
+│  ├─ VoiceApplication.java
+│  ├─ config/ClovaProperties.java
+│  ├─ api/VoiceController.java
+│  ├─ api/dto/ChatRequest.java
+│  ├─ api/dto/TtsRequest.java
+│  ├─ service/SttService.java
+│  ├─ service/ChatService.java
+│  ├─ service/TtsService.java
+│  └─ session/ConversationStore.java
+├─ src/main/resources/
+│  ├─ static/voice.html
+│  ├─ static/voice.js
+│  └─ application.yml
+└─ pom.xml</pre>
+      <h3>pom.xml</h3>
+      <pre><code>&lt;parent&gt;
+  &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+  &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+  &lt;version&gt;3.4.8&lt;/version&gt;
+&lt;/parent&gt;
+&lt;properties&gt;&lt;java.version&gt;21&lt;/java.version&gt;&lt;/properties&gt;
+&lt;dependencies&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-webflux&lt;/artifactId&gt;
+  &lt;/dependency&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-validation&lt;/artifactId&gt;
+  &lt;/dependency&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
+  &lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre>
+      <h3>application.yml — 키는 환경변수로만</h3>
+      <pre><code>server:
+  port: 8080
+  forward-headers-strategy: framework
+spring:
+  codec:
+    max-in-memory-size: 24MB
+
+clova:
+  api-key: ${CLOVA_API_KEY}
+  stt-url: ${STT_API_URL:https://gateway-api.clova-studio-gov.com/v1/audio/transcriptions}
+  tts-url: ${TTS_API_URL:https://gateway-api.clova-studio-gov.com/v1/audio/speech}
+  agent-base-url: ${AGENT_BASE_URL:https://gateway-api.clova-studio-gov.com}
+  model-base-url: ${MODEL_BASE_URL:https://gateway-api.clova-studio-gov.com/api/v1}
+  request-timeout: 125s</code></pre>
+    </section>
+
+    <section id="server">
+      <h2>5. Spring 서버 핵심 구현</h2>
+      <h3>설정과 WebClient</h3>
+      <pre><code>@ConfigurationProperties(prefix = "clova")
+public record ClovaProperties(
+    String apiKey, URI sttUrl, URI ttsUrl,
+    URI agentBaseUrl, URI modelBaseUrl, Duration requestTimeout) {
+  public String authorization() {
+    return apiKey.regionMatches(true, 0, "Bearer ", 0, 7)
+        ? apiKey : "Bearer " + apiKey;
+  }
+}
+
+@Configuration
+@EnableConfigurationProperties(ClovaProperties.class)
+class HttpConfig {
+  @Bean WebClient clovaWebClient(ClovaProperties p) {
+    HttpClient http = HttpClient.create()
+        .responseTimeout(p.requestTimeout());
+    return WebClient.builder()
+        .clientConnector(new ReactorClientHttpConnector(http))
+        .defaultHeader(HttpHeaders.AUTHORIZATION, p.authorization())
+        .build();
+  }
+}</code></pre>
+
+      <h3>STT — raw body를 메모리 multipart로 변환</h3>
+      <pre><code>@PostMapping(path = "/api/stt", consumes = MediaType.ALL_VALUE)
+public Mono&lt;Map&lt;String, Object&gt;&gt; stt(
+    @RequestBody Mono&lt;DataBuffer&gt; body,
+    @RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType,
+    @RequestParam(defaultValue = "whisper-large-v3") String model,
+    @RequestParam(defaultValue = "ko") String language) {
+
+  long started = System.nanoTime();
+  return DataBufferUtils.join(body)
+      .flatMap(buffer -&gt; {
+        byte[] audio = new byte[buffer.readableByteCount()];
+        buffer.read(audio);
+        DataBufferUtils.release(buffer);
+        if (audio.length &lt; 32 || audio.length &gt; 20 * 1024 * 1024) {
+          return Mono.error(new ResponseStatusException(BAD_REQUEST, "오디오 크기 오류"));
+        }
+        return sttService.transcribe(audio, contentType, model, language);
+      })
+      .map(result -&gt; Map.of(
+          "transcript", result.transcript(),
+          "model", result.model(),
+          "processingMs", (System.nanoTime() - started) / 1_000_000));
+}
+
+public Mono&lt;SttResult&gt; transcribe(byte[] audio, String mime, String model, String language) {
+  MultipartBodyBuilder form = new MultipartBodyBuilder();
+  form.part("model", model);
+  form.part("response_format", "json");
+  if (!"auto".equals(language)) form.part("language", language);
+  form.asyncPart("file", Mono.just(audio), byte[].class)
+      .filename(extensionFor(mime)).contentType(MediaType.parseMediaType(mime));
+
+  return webClient.post().uri(properties.sttUrl())
+      .contentType(MediaType.MULTIPART_FORM_DATA)
+      .body(BodyInserters.fromMultipartData(form.build()))
+      .retrieve()
+      .onStatus(HttpStatusCode::isError, this::upstreamError)
+      .bodyToMono(SttResult.class);
+}</code></pre>
+
+      <h3>TTS — 바이트를 버퍼링하지 않고 그대로 프록시</h3>
+      <pre><code>public record TtsRequest(
+    @NotBlank String input,
+    @NotBlank String model,
+    @DecimalMin("0.5") @DecimalMax("2.0") double speed,
+    @Pattern(regexp = "audio|sse") String stream_format) {}
+
+@PostMapping("/api/tts")
+public Mono&lt;ResponseEntity&lt;Flux&lt;DataBuffer&gt;&gt;&gt; tts(@Valid @RequestBody TtsRequest body) {
+  return webClient.post().uri(properties.ttsUrl())
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue(body)
+      .exchangeToMono(upstream -&gt; {
+        if (upstream.statusCode().isError()) {
+          return upstream.bodyToMono(String.class)
+              .flatMap(text -&gt; Mono.error(new UpstreamException(text)));
+        }
+        MediaType type = upstream.headers().contentType()
+            .orElse(body.stream_format().equals("sse")
+                ? MediaType.TEXT_EVENT_STREAM : MediaType.parseMediaType("audio/wav"));
+        return Mono.just(ResponseEntity.ok()
+            .contentType(type)
+            .header(HttpHeaders.CACHE_CONTROL, "no-store")
+            .header("X-Accel-Buffering", "no")
+            .body(upstream.bodyToFlux(DataBuffer.class)));
+      });
+}</code></pre>
+      <div class="callout"><strong>왜 WebFlux인가?</strong> <code>Flux&lt;DataBuffer&gt;</code>를 사용하면 Spring이 전체 WAV 또는 SSE 응답을 메모리에 모은 뒤 반환하지 않고, 외부 API에서 도착한 청크를 브라우저로 연속 전달할 수 있습니다.</div>
+
+      <h3>Agent/Model과 Session</h3>
+      <pre><code>public record ChatRequest(
+    @NotBlank String sessionId,
+    @NotBlank String message,
+    @Pattern(regexp = "agent|model") String provider,
+    boolean useContext,
+    String agentSlug,
+    String modelName,
+    String systemPrompt) {}
+
+@PostMapping("/api/chat")
+public Mono&lt;ChatResponse&gt; chat(@Valid @RequestBody ChatRequest request) {
+  Conversation session = store.require(request.sessionId());
+  Mono&lt;String&gt; answer = request.provider().equals("agent")
+      ? chatService.callAgent(session, request)
+      : chatService.callModel(session, request);
+  long started = System.nanoTime();
+  return answer.map(text -&gt; {
+    int turn = store.append(request.sessionId(), request.message(), text);
+    return new ChatResponse(text, turn, request.provider(),
+        (System.nanoTime() - started) / 1_000_000);
+  });
+}</code></pre>
+      <p>단일 서버 데모는 <code>ConcurrentHashMap&lt;String, Conversation&gt;</code>으로 충분합니다. 다중 인스턴스 운영에서는 Redis에 대화 이력, Agent contextId, TTL을 저장하십시오.</p>
+    </section>
+
+    <section id="browser">
+      <h2>6. 브라우저 Mic · VAD · in-memory audio</h2>
+      <h3>마이크 열기와 녹음</h3>
+      <pre><code>let stream, recorder, analyser, frame;
+let chunks = [], heardVoice = false, lastVoiceAt = 0;
+const threshold = 0.018, silenceMs = 1100;
+
+async function startListening() {
+  stream = await navigator.mediaDevices.getUserMedia({
+    audio: { channelCount: 1, echoCancellation: true,
+             noiseSuppression: true, autoGainControl: true }
+  });
+  const context = new AudioContext();
+  const source = context.createMediaStreamSource(stream);
+  analyser = context.createAnalyser();
+  analyser.fftSize = 2048;
+  source.connect(analyser);
+
+  chunks = [];
+  recorder = new MediaRecorder(stream, { mimeType: preferredMime() });
+  recorder.ondataavailable = e =&gt; { if (e.data.size) chunks.push(e.data); };
+  recorder.onstop = async () =&gt; {
+    const audioBlob = new Blob(chunks, { type: recorder.mimeType });
+    stopTracks();
+    await runTurn(audioBlob);          // 디스크 저장 없이 Blob 전송
+  };
+  recorder.start(250);
+  monitorVad(performance.now());
+}
+
+function preferredMime() {
+  return ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm']
+    .find(MediaRecorder.isTypeSupported.bind(MediaRecorder)) || '';
+}</code></pre>
+      <h3>RMS 기반 VAD</h3>
+      <pre><code>function monitorVad(startedAt) {
+  const values = new Uint8Array(analyser.fftSize);
+  analyser.getByteTimeDomainData(values);
+  let sum = 0;
+  for (const value of values) {
+    const sample = (value - 128) / 128;
+    sum += sample * sample;
+  }
+  const rms = Math.sqrt(sum / values.length);
+  const now = performance.now();
+  if (rms &gt; threshold) { heardVoice = true; lastVoiceAt = now; }
+  if (heardVoice &amp;&amp; now - lastVoiceAt &gt; silenceMs) {
+    recorder.stop();
+    return;
+  }
+  if (now - startedAt &gt; 20_000) { recorder.stop(); return; }
+  frame = requestAnimationFrame(() =&gt; monitorVad(startedAt));
+}</code></pre>
+      <h3>메모리 오디오를 HTTPS로 전송</h3>
+      <pre><code>async function transcribe(blob, signal) {
+  const query = new URLSearchParams({
+    model: 'whisper-large-v3', language: 'ko', response_format: 'json'
+  });
+  const response = await fetch(`/api/stt?${query}`, {
+    method: 'POST',
+    headers: { 'Content-Type': blob.type || 'audio/webm' },
+    body: blob,
+    signal
+  });
+  if (!response.ok) throw new Error(await response.text());
+  return response.json();
+}</code></pre>
+    </section>
+
+    <section id="prefetch">
+      <h2>7. 문장 단위 TTS 선행 합성</h2>
+      <p>전체 답변을 한 번에 TTS로 보내면 첫 음성까지 오래 기다립니다. 답변을 문장 단위로 나누고, 현재 문장을 재생하는 동안 다음 문장의 TTS 요청을 시작하면 문장 사이 공백을 줄일 수 있습니다.</p>
+      <pre><code>function splitSentences(text, max = 120) {
+  const sentences = [...new Intl.Segmenter('ko', { granularity: 'sentence' })
+    .segment(text)].map(x =&gt; x.segment.trim()).filter(Boolean);
+  return sentences.flatMap(sentence =&gt; {
+    const parts = [];
+    while (sentence.length &gt; max) {
+      parts.push(sentence.slice(0, max));
+      sentence = sentence.slice(max);
+    }
+    if (sentence) parts.push(sentence);
+    return parts;
+  });
+}
+
+async function speakAnswer(answer, signal) {
+  const sentences = splitSentences(answer);
+  let prepared = requestTts(sentences[0], signal); // 첫 문장 즉시 합성
+
+  for (let i = 0; i &lt; sentences.length; i++) {
+    const audioBlob = await prepared;
+    prepared = i + 1 &lt; sentences.length
+      ? requestTts(sentences[i + 1], signal)       // 재생 전 다음 문장 선행 합성
+      : null;
+    const result = await playWithBargeIn(audioBlob, signal);
+    if (result === 'interrupted') return result;
+  }
+  return 'ended';
+}
+
+async function requestTts(sentence, signal) {
+  const response = await fetch('/api/tts', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ input: sentence, model: 'melo-tts-ko',
+      speed: 1.6, stream_format: 'audio' }), signal
+  });
+  if (!response.ok) throw new Error(await response.text());
+  return response.blob();
+}</code></pre>
+      <div class="callout warn"><strong>주의:</strong> 이 방식의 “prefetch”는 문장 N을 재생하면서 문장 N+1의 완성된 WAV를 준비하는 방식입니다. WAV 컨테이너를 단순히 받은 청크마다 각각 재생하는 것은 아닙니다. 진짜 저지연 PCM 재생은 AudioWorklet과 raw PCM 포맷이 별도로 필요합니다.</div>
+    </section>
+
+    <section id="sse">
+      <h2>8. Audio 스트림과 SSE 이벤트 스트림</h2>
+      <table><thead><tr><th>옵션</th><th>서버 응답</th><th>브라우저 처리</th><th>특징</th></tr></thead><tbody>
+        <tr><td><code>audio</code></td><td><code>audio/wav</code> 바이너리</td><td><code>response.blob()</code></td><td>구현이 가장 단순합니다. WAV는 메모리에 존재하며 파일 저장은 선택 사항입니다.</td></tr>
+        <tr><td><code>sse</code></td><td><code>text/event-stream</code></td><td>data 이벤트 JSON의 Base64 audio를 디코딩</td><td>이벤트 메타데이터를 함께 보낼 수 있으나 Base64로 약 33% 커지고 파서가 필요합니다.</td></tr>
+      </tbody></table>
+      <pre><code>async function sseAudioBlob(response) {
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '', chunks = [];
+  while (true) {
+    const { value, done } = await reader.read();
+    buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+    const events = buffer.split(/\r?\n\r?\n/);
+    buffer = events.pop() || '';
+    for (const event of events) {
+      for (const line of event.split(/\r?\n/)) {
+        if (!line.startsWith('data:')) continue;
+        const raw = line.slice(5).trim();
+        if (!raw || raw === '[DONE]') continue;
+        const json = JSON.parse(raw);
+        if (json.audio) chunks.push(Uint8Array.from(atob(json.audio),
+          c =&gt; c.charCodeAt(0)));
+      }
+    }
+    if (done) break;
+  }
+  return new Blob(chunks, { type: 'audio/wav' });
+}</code></pre>
+      <p class="callout"><strong>선택 기준:</strong> 단순한 음성 대화 데모는 <code>audio</code>가 현실적입니다. API가 SSE만 제공하거나 진행 이벤트가 필요할 때 SSE를 사용하십시오. 두 방식 모두 브라우저 메모리에서 재생할 수 있으며 WAV 파일 저장은 필수가 아닙니다.</p>
+    </section>
+
+    <section id="session">
+      <h2>9. 멀티턴 Session과 TTS 인터럽트</h2>
+      <h3>세션 상태</h3>
+      <pre><code>public final class Conversation {
+  private final String id = "session-" + UUID.randomUUID().toString().substring(0, 12);
+  private final List&lt;Message&gt; turns = new CopyOnWriteArrayList&lt;&gt;();
+  private volatile String agentContextId;
+  private volatile Instant expiresAt = Instant.now().plus(Duration.ofHours(2));
+}
+
+@Component
+class ConversationStore {
+  private final ConcurrentMap&lt;String, Conversation&gt; sessions = new ConcurrentHashMap&lt;&gt;();
+  // create, require, append, delete 및 주기적 TTL 정리 구현
+}</code></pre>
+      <h3>Barge-in — TTS 중 새 발화 감지</h3>
+      <p>TTS 재생 전에 별도 마이크 감시를 먼저 준비합니다. 처음 약 250밀리초는 스피커 누설음을 기준 소음으로 학습하고, 동적 임계값을 160밀리초 이상 넘으면 오디오를 멈춘 뒤 같은 마이크 스트림을 새 Turn 녹음에 넘깁니다.</p>
+      <pre><code>async function playWithBargeIn(blob, signal) {
+  const monitor = await navigator.mediaDevices.getUserMedia({
+    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+  });
+  const context = new AudioContext();
+  await context.resume();
+  const probe = context.createAnalyser();
+  context.createMediaStreamSource(monitor).connect(probe);
+
+  const url = URL.createObjectURL(blob);
+  audio.src = url;
+  await audio.play();
+  const outcome = await raceAudioEndedAndSustainedVoice(audio, probe, 250, 160, signal);
+  if (outcome === 'interrupted') {
+    audio.pause();
+    await startListening(monitor); // 준비된 스트림 재사용, 권한 재요청 지연 없음
+  } else {
+    monitor.getTracks().forEach(track =&gt; track.stop());
+  }
+  URL.revokeObjectURL(url);
+  await context.close();
+  return outcome;
+}</code></pre>
+      <h3>Turn 상태 머신</h3>
+      <pre><code>LISTENING → STT → ANSWER → TTS → LISTENING
+                   ↑        │
+                   └────────┘  사용자 발화 인터럽트
+
+종료 버튼:
+generation 증가 → AbortController.abort() → MediaRecorder/track 정리
+→ audio.pause() → Session DELETE → UI READY</code></pre>
+      <p>비동기 콜백에는 현재 <code>generation</code> 값을 캡처해 둡니다. 세션 종료나 새 세션 생성 후 이전 요청이 늦게 도착해도 generation이 다르면 결과를 폐기해야 합니다.</p>
+    </section>
+
+    <section id="deploy">
+      <h2>10. HTTPS 배포와 완료 점검</h2>
+      <h3>Nginx 핵심 설정</h3>
+      <pre><code>location / {
+  proxy_pass http://127.0.0.1:8080;
+  proxy_http_version 1.1;
+  proxy_buffering off;          # SSE/TTS 청크 지연 방지
+  proxy_request_buffering off;  # 오디오 업로드 지연 최소화
+  proxy_read_timeout 180s;
+  proxy_set_header Host $host;
+  proxy_set_header X-Forwarded-Proto $scheme;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+</code></pre>
+      <ul class="checklist">
+        <li>마이크 API는 <code>localhost</code> 또는 유효한 HTTPS에서만 사용합니다.</li>
+        <li><code>Permissions-Policy: microphone=(self)</code>와 same-origin 정책을 적용합니다.</li>
+        <li>브라우저에는 API 키, Authorization 헤더, 외부 API URL을 노출하지 않습니다.</li>
+        <li>STT body 크기, 질문 길이, model/slug 패턴, 세션 TTL을 제한합니다.</li>
+        <li>외부 오류의 본문 전체나 API 키를 로그에 남기지 않습니다.</li>
+        <li>SSE 응답에는 <code>Cache-Control: no-store</code>와 <code>X-Accel-Buffering: no</code>를 설정합니다.</li>
+        <li>Chrome, Safari에서 마이크 권한 거부, 무음, 긴 발화, TTS 인터럽트, 세션 종료/재시작을 각각 테스트합니다.</li>
+      </ul>
+      <h3>권장 구현 순서</h3>
+      <ol class="steps"><li>정적 HTML과 세션 API부터 구성합니다.</li><li>raw 오디오 수신과 multipart STT를 연결합니다.</li><li>Agent 또는 Model 중 하나를 먼저 연결한 뒤 세션 문맥을 추가합니다.</li><li>TTS Audio 프록시를 먼저 완성하고, 필요할 때 SSE 파서를 추가합니다.</li><li>자동 다음 Turn, AbortController, Barge-in 순으로 상태 머신을 확장합니다.</li><li>HTTPS와 Nginx buffering 해제를 적용하고 실제 브라우저에서 종단 테스트합니다.</li></ol>
+    </section>
+
+    <footer class="footer">이 문서는 voice-chat-server-demo의 Python/FastAPI 구현 계약을 Spring Boot WebFlux로 옮기기 위한 개발 가이드입니다. 예제 코드는 핵심 흐름을 설명하며, 운영 적용 전 예외 매핑·재시도·메트릭·Redis 세션·통합 테스트를 보강해야 합니다.</footer>
+  </main>
+</div>
+</body>
+</html>

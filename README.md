@@ -196,6 +196,8 @@ API 요청이 실패하는 경우:
 
 ## API
 
+Java/Spring Boot로 동일 구조를 재구현하려면 [Spring Boot 음성 대화 서비스 구현 가이드](docs/spring-boot-voice-chat-guide.html)를 참고하세요. 브라우저 VAD, 메모리 오디오 전송, WebFlux 스트림 프록시, 문장 단위 TTS 선행 합성, SSE 및 발화 인터럽트 예제를 포함합니다.
+
 | Method | Path | 설명 |
 |---|---|---|
 | GET | `/api/health` | 서버 상태 |
