@@ -19,7 +19,8 @@ def test_no_local_model_runtime_is_shipped():
 
 def test_browser_defaults_match_server_defaults():
     script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
-    assert "agentSlug:'Dyyn7G5jTCapQqsXAIoVxg'" in script
+    assert "agentSlug:'w4r7BhFhTTueoOCISFRFPg'" in script
+    assert "if(saved.agentSlug==='Dyyn7G5jTCapQqsXAIoVxg')delete saved.agentSlug" in script
     assert "modelName:'google/gemma-4-31B-it'" in script
     assert "ttsSpeed:1.6" in script
     assert "voiceChatSettingsV2" in script

@@ -37,13 +37,13 @@ TTS 출력 규칙
 사용자: 안녕하세요.
 
 어시스턴트: 안녕하세요. 무엇을 도와드릴까요?`;
-const DEFAULTS={vadThreshold:.018,silenceMs:1100,maxListenMs:20000,sttModel:'whisper-large-v3',sttLanguage:'ko',sttPrompt:'',provider:'agent',agentSlug:'Dyyn7G5jTCapQqsXAIoVxg',modelName:'google/gemma-4-31B-it',systemPrompt:DEFAULT_SYSTEM_PROMPT,useContext:true,ttsModel:'melo-tts-ko',ttsSpeed:1.6,streamFormat:'sse',bargeIn:true};
+const DEFAULTS={vadThreshold:.018,silenceMs:1100,maxListenMs:20000,sttModel:'whisper-large-v3',sttLanguage:'ko',sttPrompt:'',provider:'agent',agentSlug:'w4r7BhFhTTueoOCISFRFPg',modelName:'google/gemma-4-31B-it',systemPrompt:DEFAULT_SYSTEM_PROMPT,useContext:true,ttsModel:'melo-tts-ko',ttsSpeed:1.6,streamFormat:'sse',bargeIn:true};
 let settings=loadSettings(),sessionId='',turn=0,sessionActive=false,busy=false,transitioning=false,generation=0;
 let mediaStream=null,mediaRecorder=null,audioContext=null,analyser=null,meterFrame=0,recordTimer=0,lastVoice=0,heardVoice=false,recordParts=[];
 let turnAbort=null,nextTurnTimer=0,playbackUrl='',playbackUnlocked=false;
 const mic=$('#mic'),audio=$('#audio'),conversation=$('#conversation'),errorBox=$('#error'),caption=$('#caption'),title=$('#control-title'),hint=$('#control-hint'),logView=$('#log');
 
-function loadSettings(){try{return {...DEFAULTS,...JSON.parse(localStorage.getItem('voiceChatSettingsV2')||'{}')}}catch{return {...DEFAULTS}}}
+function loadSettings(){try{const saved=JSON.parse(localStorage.getItem('voiceChatSettingsV2')||'{}');if(saved.agentSlug==='Dyyn7G5jTCapQqsXAIoVxg')delete saved.agentSlug;return{...DEFAULTS,...saved}}catch{return {...DEFAULTS}}}
 function saveLocal(){localStorage.setItem('voiceChatSettingsV2',JSON.stringify(settings))}
 function log(kind,message,detail='',bad=false){logView.querySelector(':scope>p')?.remove();const row=document.createElement('div');row.className=`log-row${bad?' error':''}`;const time=document.createElement('time');time.textContent=new Date().toLocaleTimeString('ko-KR',{hour12:false});const type=document.createElement('b');type.textContent=kind;const text=document.createElement('span');text.textContent=message;const meta=document.createElement('em');meta.textContent=detail;row.append(time,type,text,meta);logView.append(row);logView.scrollTop=logView.scrollHeight}
 async function api(kind,url,options={}){const started=performance.now();log(kind,`${options.method||'GET'} ${url}`,'request');try{const response=await fetch(url,options);log(kind,`${response.status} ${response.statusText||'OK'}`,`${Math.round(performance.now()-started)}ms`,!response.ok);return response}catch(error){log(kind,error.message,`${Math.round(performance.now()-started)}ms`,true);throw error}}
