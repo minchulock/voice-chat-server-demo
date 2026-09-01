@@ -173,6 +173,70 @@ MODEL_NAME=google/gemma-4-31B-it
 sudo systemctl restart voice-chat
 ```
 
+## NCP VPC 최소 방화벽 규칙
+
+아래 규칙은 NAVER Cloud Platform VPC에서 Public IP가 할당된 Ubuntu 서버가 Nginx로 `80/443` 요청을 직접 받고, Uvicorn은 `127.0.0.1:8000`에서만 실행되는 구성을 기준으로 합니다. Load Balancer를 사용하는 경우에는 서버의 접근 소스를 `0.0.0.0/0` 대신 Load Balancer 대역 또는 ACG로 제한해야 합니다.
+
+### 1. ACG 최소 규칙
+
+ACG는 서버 단위의 stateful 방화벽입니다. 허용된 연결의 응답 트래픽은 자동 허용되므로 응답용 ephemeral port 규칙은 필요하지 않습니다. 다만 서버가 CLOVA API 등에 새 요청을 보내려면 Outbound 규칙이 있어야 합니다.
+
+#### Inbound
+
+| Protocol | 접근 소스 | 허용 포트 | 용도 |
+|---|---|---:|---|
+| TCP | `0.0.0.0/0` | `443` | 음성 챗봇 HTTPS 접속 |
+| TCP | `0.0.0.0/0` | `80` | HTTPS redirect 및 인증서 발급·갱신 |
+| TCP | `관리자_공인_IP/32` | `22` | SSH 관리 |
+
+`22`번 포트는 반드시 관리자의 고정 공인 IP로 제한합니다. HTTP를 사용하지 않고 인증서를 DNS 방식으로 관리한다면 `80`번 규칙은 제거할 수 있습니다.
+
+#### Outbound
+
+| Protocol | 목적지 | 허용 포트 | 용도 |
+|---|---|---:|---|
+| TCP | `0.0.0.0/0` | `443` | CLOVA API, GitHub 및 HTTPS 저장소 |
+| TCP | `0.0.0.0/0` | `80` | Ubuntu 패키지 및 일부 HTTP 저장소 |
+| UDP | `169.254.169.53/32` | `53` | NCP VPC DNS |
+| UDP | `169.254.169.54/32` | `53` | NCP VPC 보조 DNS |
+| TCP | `169.254.169.53/32` | `53` | DNS TCP fallback |
+| TCP | `169.254.169.54/32` | `53` | DNS TCP fallback |
+
+ACG에서 link-local DNS 주소를 목적지로 입력할 수 없다면 DNS 규칙에 한해 `0.0.0.0/0`의 TCP/UDP `53`을 허용합니다. 자세한 동작은 [NCP ACG 가이드](https://guide.ncloud-docs.com/docs/server-acg-vpc)와 [NCP DNS 점검 가이드](https://guide.ncloud-docs.com/docs/server-ts-dns-vpc)를 참고하세요.
+
+### 2. Network ACL 최소 규칙
+
+Network ACL은 Subnet 단위의 stateless 방화벽이므로 요청과 응답을 양방향으로 각각 허용해야 합니다. 아래 ALLOW 규칙은 전체 차단 규칙보다 높은 우선순위에 배치합니다.
+
+#### Inbound ALLOW
+
+| 우선순위 예시 | Protocol | 접근 소스 | 허용 포트 | 용도 |
+|---:|---|---|---:|---|
+| `10` | TCP | `0.0.0.0/0` | `443` | HTTPS 요청 |
+| `20` | TCP | `0.0.0.0/0` | `80` | HTTP 요청 |
+| `30` | TCP | `관리자_공인_IP/32` | `22` | SSH 요청 |
+| `40` | TCP | `0.0.0.0/0` | `32768-65535` | 서버가 외부로 시작한 연결의 응답 |
+
+#### Outbound ALLOW
+
+| 우선순위 예시 | Protocol | 목적지 | 허용 포트 | 용도 |
+|---:|---|---|---:|---|
+| `10` | TCP | `0.0.0.0/0` | `443` | CLOVA API, GitHub 및 HTTPS 저장소 |
+| `20` | TCP | `0.0.0.0/0` | `80` | Ubuntu 패키지 및 HTTP 저장소 |
+| `30` | TCP | `0.0.0.0/0` | `32768-65535` | 웹·SSH 클라이언트에 대한 응답 |
+| `40` | UDP | NCP DNS IP | `53` | DNS 질의 |
+| `50` | TCP | NCP DNS IP | `53` | DNS TCP fallback |
+
+필요한 ALLOW 규칙 뒤에는 다음과 같이 나머지 트래픽을 차단할 수 있습니다.
+
+| 우선순위 예시 | Protocol | 접근 소스/목적지 | 포트 | 동작 |
+|---:|---|---|---:|---|
+| `197` | TCP | `0.0.0.0/0` | `1-65535` | DENY |
+| `198` | UDP | `0.0.0.0/0` | `1-65535` | DENY |
+| `199` | ICMP | `0.0.0.0/0` | 전체 | DENY |
+
+Nginx와 Uvicorn 사이의 `127.0.0.1:8000` 통신은 서버 내부 loopback이므로 ACG 및 Network ACL에 `8000`번 포트를 열지 않습니다. 자세한 차이는 [NCP Network ACL 가이드](https://guide.ncloud-docs.com/docs/en/vpc-nacl-vpc)를 참고하세요.
+
 ## 로그와 장애 진단
 
 ```bash
