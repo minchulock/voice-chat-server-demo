@@ -9,6 +9,8 @@ fi
 
 git pull --ff-only
 cp -a app static deploy requirements.txt pyproject.toml "${APP_DIR}/"
+install -m 0644 docs/spring-boot-voice-chat-guide.html "${APP_DIR}/static/spring-boot-voice-chat-guide.html"
+install -m 0644 docs/spring-boot-voice-chat-guide.css "${APP_DIR}/static/spring-boot-voice-chat-guide.css"
 "${APP_DIR}/.venv/bin/pip" install -r "${APP_DIR}/requirements.txt"
 chown -R voicechat:voicechat "${APP_DIR}"
 systemctl restart voice-chat

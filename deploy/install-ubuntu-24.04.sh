@@ -18,6 +18,8 @@ fi
 
 install -d -o "${APP_USER}" -g "${APP_USER}" "${APP_DIR}"
 cp -a app static deploy requirements.txt pyproject.toml "${APP_DIR}/"
+install -m 0644 docs/spring-boot-voice-chat-guide.html "${APP_DIR}/static/spring-boot-voice-chat-guide.html"
+install -m 0644 docs/spring-boot-voice-chat-guide.css "${APP_DIR}/static/spring-boot-voice-chat-guide.css"
 if [[ ! -f "${APP_DIR}/.env" ]]; then
   cp .env.example "${APP_DIR}/.env.example"
 fi

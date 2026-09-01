@@ -40,3 +40,16 @@ def test_barge_in_monitor_is_ready_before_tts_playback():
     assert "settings.vadThreshold*.75" in play_blob
     assert "warming=now-began<=250" in play_blob
     assert "voiceSince&&now-voiceSince>160" in play_blob
+
+
+def test_spring_guide_uses_csp_compatible_external_css_and_is_deployed():
+    guide = (ROOT / "docs" / "spring-boot-voice-chat-guide.html").read_text(encoding="utf-8")
+    stylesheet = ROOT / "docs" / "spring-boot-voice-chat-guide.css"
+    install_script = (ROOT / "deploy" / "install-ubuntu-24.04.sh").read_text(encoding="utf-8")
+    update_script = (ROOT / "deploy" / "update.sh").read_text(encoding="utf-8")
+    assert 'href="spring-boot-voice-chat-guide.css"' in guide
+    assert stylesheet.stat().st_size > 1_000
+    assert "docs/spring-boot-voice-chat-guide.html" in install_script
+    assert "docs/spring-boot-voice-chat-guide.css" in install_script
+    assert "docs/spring-boot-voice-chat-guide.html" in update_script
+    assert "docs/spring-boot-voice-chat-guide.css" in update_script
