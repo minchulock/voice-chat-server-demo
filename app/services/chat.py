@@ -20,24 +20,52 @@ async def call_agent(settings: Settings, session: Session, message: str, slug: s
     body = {
         "jsonrpc": "2.0",
         "id": f"request-{uuid.uuid4().hex[:8]}",
-        "method": "message/send",
-        "params": {"message": {"kind": "message", "messageId": f"msg-{uuid.uuid4().hex[:8]}", "role": "user", "parts": [{"kind": "text", "text": agent_message}] }},
+        "method": "SendStreamingMessage",
+        "params": {"message": {"messageId": f"msg-{uuid.uuid4().hex[:8]}", "role": "user", "parts": [{"text": agent_message}] }},
     }
-    if session.agent_context_id:
-        body["params"]["message"]["contextId"] = session.agent_context_id
+    answer = ""
+    context_id: str | None = None
     async with httpx.AsyncClient(timeout=settings.request_timeout_seconds) as client:
-        response = await client.post(
-            f"{settings.agent_base_url}/api/v1/external/agents/{slug}/a2a",
-            headers={"Authorization": settings.authorization, "Content-Type": "application/json"},
+        async with client.stream(
+            "POST",
+            f"{settings.agent_base_url}/api/v1/external/agents/v2/{slug}/a2a",
+            headers={
+                "Authorization": settings.authorization,
+                "Content-Type": "application/json",
+                "Accept": "text/event-stream",
+            },
             json=body,
-        )
-        response.raise_for_status()
-        result = response.json()
-    answer = extract_text(result)
+        ) as response:
+            response.raise_for_status()
+            async for line in response.aiter_lines():
+                if not line.startswith("data:"):
+                    continue
+                raw = line[5:].strip()
+                if not raw or raw == "[DONE]":
+                    continue
+                try:
+                    event = json.loads(raw)
+                except json.JSONDecodeError:
+                    continue
+                if error := event.get("error"):
+                    detail = error.get("message") or error.get("data", {}).get("detail") or "Agent v2 요청에 실패했습니다."
+                    raise ValueError(str(detail))
+                result = event.get("result", {})
+                if found_context := find_nested(result, "contextId"):
+                    context_id = str(found_context)
+                update = result.get("artifactUpdate")
+                if not isinstance(update, dict):
+                    continue
+                artifact = update.get("artifact", {})
+                parts = artifact.get("parts", []) if isinstance(artifact, dict) else []
+                text = "".join(
+                    str(part.get("text", "")) for part in parts if isinstance(part, dict) and part.get("text")
+                ).strip()
+                if text:
+                    answer = text
     if not answer:
-        raise ValueError("Agent API 응답에서 답변을 찾지 못했습니다.")
-    context_id = find_nested(result, "contextId")
-    return answer, str(context_id) if context_id else None
+        raise ValueError("Agent v2 SSE 응답에서 최종 artifactUpdate 답변을 찾지 못했습니다.")
+    return answer, context_id
 
 
 async def call_model(

@@ -1,6 +1,6 @@
 # VOICE24 AI — Server–Client Voice Chat Demo
 
-CLOVA Studio GOV의 STT API, Agent API 또는 Model API, Streaming TTS API를 연결한 브라우저 음성 챗봇 데모입니다.
+CLOVA Studio GOV의 STT API, Agent v2 API(A2A 1.0) 또는 Model API, Streaming TTS API를 연결한 브라우저 음성 챗봇 데모입니다.
 
 이 저장소에는 로컬 AI 모델, 모델 가중치, MLX, Ollama, Whisper 서버, 로컬 TTS 서버가 포함되지 않습니다. 브라우저는 마이크·VAD·오디오 재생을 담당하고 API 키가 필요한 모든 요청은 FastAPI 서버가 처리합니다.
 
@@ -27,7 +27,7 @@ Browser ← sentence prefetch audio/SSE ← Speaker
 - 브라우저 VAD 기반 자동 발화 종료
 - WAV 파일을 디스크에 저장하지 않는 메모리 오디오 전송
 - CLOVA STT API 동기 전사
-- Agent API/Model API 선택
+- Agent v2 API(A2A 1.0)/Model API 선택
 - Agent 응답 대기 애니메이션
 - Session 기반 멀티턴 문맥
 - Model API 시스템 프롬프트
