@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import load_settings
 from app.schemas import ChatRequest, TtsRequest
-from app.services.chat import call_agent, call_model
+from app.services.chat import call_agent_v1, call_agent_v2, call_model
 from app.services.stt import transcribe
 from app.services.tts import iter_and_close, open_tts_stream
 from app.sessions import SessionStore
@@ -102,10 +102,14 @@ async def chat(payload: ChatRequest):
         raise HTTPException(404, "세션을 찾을 수 없습니다. 새 세션을 시작하세요.")
     started = time.perf_counter()
     try:
-        if payload.provider == "agent":
-            answer, context_id = await call_agent(
-                settings, session, payload.message, payload.agent_slug or settings.agent_slug, payload.use_context
+        if payload.provider in {"agent_v1", "agent_v2"}:
+            caller = call_agent_v1 if payload.provider == "agent_v1" else call_agent_v2
+            slug = (
+                payload.agent_v1_slug or settings.agent_v1_slug
+                if payload.provider == "agent_v1"
+                else payload.agent_v2_slug or settings.agent_v2_slug
             )
+            answer, context_id = await caller(settings, session, payload.message, slug, payload.use_context)
             if context_id:
                 session.agent_context_id = context_id
         else:

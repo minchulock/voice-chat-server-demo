@@ -6,9 +6,10 @@ from pydantic import BaseModel, Field
 class ChatRequest(BaseModel):
     session_id: str = Field(min_length=8, max_length=100)
     message: str = Field(min_length=1, max_length=4000)
-    provider: Literal["agent", "model"] = "agent"
+    provider: Literal["agent_v1", "agent_v2", "model"] = "agent_v1"
     use_context: bool = True
-    agent_slug: str | None = Field(default=None, max_length=200, pattern=r"^[A-Za-z0-9_-]+$")
+    agent_v1_slug: str | None = Field(default=None, max_length=200, pattern=r"^[A-Za-z0-9_-]+$")
+    agent_v2_slug: str | None = Field(default=None, max_length=200, pattern=r"^[A-Za-z0-9_-]+$")
     model_name: str | None = Field(default=None, max_length=200, pattern=r"^[A-Za-z0-9._:/-]+$")
     system_prompt: str | None = Field(default=None, max_length=8000)
 

@@ -10,13 +10,50 @@ from app.services.common import extract_text, find_nested
 from app.sessions import Session
 
 
-async def call_agent(settings: Settings, session: Session, message: str, slug: str, use_context: bool) -> tuple[str, str | None]:
+def _agent_message(session: Session, message: str, use_context: bool) -> str:
     agent_message = message
     if use_context and session.turns:
         history = "\n".join(
             f"{'사용자' if item['role'] == 'user' else '어시스턴트'}: {item['content']}" for item in session.turns[-8:]
         )
         agent_message = f"이전 대화:\n{history}\n\n현재 사용자 질문: {message}"
+    return agent_message
+
+
+async def call_agent_v1(settings: Settings, session: Session, message: str, slug: str, use_context: bool) -> tuple[str, str | None]:
+    body = {
+        "jsonrpc": "2.0",
+        "id": f"request-{uuid.uuid4().hex[:8]}",
+        "method": "message/send",
+        "params": {
+            "message": {
+                "kind": "message",
+                "messageId": f"msg-{uuid.uuid4().hex[:8]}",
+                "role": "user",
+                "parts": [{"kind": "text", "text": _agent_message(session, message, use_context)}],
+            }
+        },
+    }
+    async with httpx.AsyncClient(timeout=settings.request_timeout_seconds) as client:
+        response = await client.post(
+            f"{settings.agent_base_url}/api/v1/external/agents/{slug}/a2a",
+            headers={"Authorization": settings.authorization, "Content-Type": "application/json"},
+            json=body,
+        )
+        response.raise_for_status()
+        data = response.json()
+    if error := data.get("error"):
+        detail = error.get("message") or error.get("data", {}).get("detail") or "Agent v1 요청에 실패했습니다."
+        raise ValueError(str(detail))
+    answer = extract_text(data.get("result", {})).strip()
+    if not answer:
+        raise ValueError("Agent v1 응답에서 답변을 찾지 못했습니다.")
+    context_id = find_nested(data.get("result", {}), "contextId")
+    return answer, str(context_id) if context_id else None
+
+
+async def call_agent_v2(settings: Settings, session: Session, message: str, slug: str, use_context: bool) -> tuple[str, str | None]:
+    agent_message = _agent_message(session, message, use_context)
     body = {
         "jsonrpc": "2.0",
         "id": f"request-{uuid.uuid4().hex[:8]}",
