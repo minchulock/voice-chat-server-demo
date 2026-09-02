@@ -54,3 +54,9 @@ def test_spring_guide_uses_csp_compatible_external_css_and_is_deployed():
     assert "docs/spring-boot-voice-chat-guide.css" in install_script
     assert "docs/spring-boot-voice-chat-guide.html" in update_script
     assert "docs/spring-boot-voice-chat-guide.css" in update_script
+
+
+def test_stt_error_uses_friendly_ui_message_but_logs_original_error():
+    script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
+    assert "일시적 오류 또는 짧은 발화로 인식되지 않았습니다. 다시 시도 부탁드립니다." in script
+    assert "log('ERROR',error.message,failedStage||'turn',true)" in script
