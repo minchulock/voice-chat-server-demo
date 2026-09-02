@@ -12,7 +12,8 @@ class Session:
     created_at: float
     updated_at: float
     turns: list[dict[str, str]] = field(default_factory=list)
-    agent_context_id: str | None = None
+    agent_v1_chat_session_id: int | None = None
+    agent_v2_context_id: str | None = None
 
 
 class SessionStore:

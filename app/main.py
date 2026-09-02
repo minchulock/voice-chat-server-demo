@@ -102,16 +102,18 @@ async def chat(payload: ChatRequest):
         raise HTTPException(404, "세션을 찾을 수 없습니다. 새 세션을 시작하세요.")
     started = time.perf_counter()
     try:
-        if payload.provider in {"agent_v1", "agent_v2"}:
-            caller = call_agent_v1 if payload.provider == "agent_v1" else call_agent_v2
-            slug = (
-                payload.agent_v1_slug or settings.agent_v1_slug
-                if payload.provider == "agent_v1"
-                else payload.agent_v2_slug or settings.agent_v2_slug
+        if payload.provider == "agent_v1":
+            answer, chat_session_id = await call_agent_v1(
+                settings, session, payload.message, payload.agent_v1_slug or settings.agent_v1_slug, payload.use_context
             )
-            answer, context_id = await caller(settings, session, payload.message, slug, payload.use_context)
+            if chat_session_id is not None:
+                session.agent_v1_chat_session_id = chat_session_id
+        elif payload.provider == "agent_v2":
+            answer, context_id = await call_agent_v2(
+                settings, session, payload.message, payload.agent_v2_slug or settings.agent_v2_slug, payload.use_context
+            )
             if context_id:
-                session.agent_context_id = context_id
+                session.agent_v2_context_id = context_id
         else:
             answer = await call_model(
                 settings, session, payload.message, payload.model_name or settings.model_name,

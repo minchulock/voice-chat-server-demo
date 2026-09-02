@@ -20,7 +20,7 @@ def _agent_message(session: Session, message: str, use_context: bool) -> str:
     return agent_message
 
 
-async def call_agent_v1(settings: Settings, session: Session, message: str, slug: str, use_context: bool) -> tuple[str, str | None]:
+async def call_agent_v1(settings: Settings, session: Session, message: str, slug: str, use_context: bool) -> tuple[str, int | None]:
     body = {
         "jsonrpc": "2.0",
         "id": f"request-{uuid.uuid4().hex[:8]}",
@@ -30,12 +30,12 @@ async def call_agent_v1(settings: Settings, session: Session, message: str, slug
                 "kind": "message",
                 "messageId": f"msg-{uuid.uuid4().hex[:8]}",
                 "role": "user",
-                "parts": [{"kind": "text", "text": _agent_message(session, message, use_context)}],
+                "parts": [{"kind": "text", "text": message}],
             }
         },
     }
-    if session.agent_context_id:
-        body["params"]["message"]["contextId"] = session.agent_context_id
+    if use_context and session.agent_v1_chat_session_id is not None:
+        body["params"]["metadata"] = {"chat_session_id": session.agent_v1_chat_session_id}
     async with httpx.AsyncClient(timeout=settings.request_timeout_seconds) as client:
         response = await client.post(
             f"{settings.agent_base_url}/api/v1/external/agents/{slug}/a2a",
@@ -47,11 +47,18 @@ async def call_agent_v1(settings: Settings, session: Session, message: str, slug
     if error := data.get("error"):
         detail = error.get("message") or error.get("data", {}).get("detail") or "Agent v1 요청에 실패했습니다."
         raise ValueError(str(detail))
-    answer = extract_text(data.get("result", {})).strip()
+    result = data.get("result", {})
+    answer = extract_text(result.get("message", {})).strip() if isinstance(result, dict) else ""
+    if not answer:
+        answer = extract_text(result).strip()
     if not answer:
         raise ValueError("Agent v1 응답에서 답변을 찾지 못했습니다.")
-    context_id = find_nested(data.get("result", {}), "contextId")
-    return answer, str(context_id) if context_id else None
+    chat_session_id = find_nested(data, "chat_session_id")
+    try:
+        parsed_session_id = int(chat_session_id) if chat_session_id is not None else None
+    except (TypeError, ValueError):
+        parsed_session_id = None
+    return answer, parsed_session_id
 
 
 async def call_agent_v2(settings: Settings, session: Session, message: str, slug: str, use_context: bool) -> tuple[str, str | None]:
