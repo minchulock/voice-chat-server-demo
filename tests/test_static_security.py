@@ -43,6 +43,15 @@ def test_barge_in_monitor_is_ready_before_tts_playback():
     assert "settings.vadThreshold*.75" in play_blob
     assert "warming=now-began<=250" in play_blob
     assert "voiceSince&&now-voiceSince>160" in play_blob
+    assert "bargeRecorder.start(100);await recorderStarted" in play_blob
+    assert "while(preRoll.length>6)preRoll.shift()" in play_blob
+    assert "adoptBargeIn(monitorStream,ctx,probe,bargeRecorder,preRoll,myGeneration)" in play_blob
+
+
+def test_listening_ui_waits_until_media_recorder_has_started():
+    script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
+    start_listening = script.split("async function startListening", 1)[1].split("function finishListening", 1)[0]
+    assert start_listening.index("recorder.start(100);await started") < start_listening.index("title.textContent='듣고 있어요'")
 
 
 def test_spring_guide_uses_csp_compatible_external_css_and_is_deployed():
