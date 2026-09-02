@@ -34,6 +34,8 @@ async def call_agent_v1(settings: Settings, session: Session, message: str, slug
             }
         },
     }
+    if session.agent_context_id:
+        body["params"]["message"]["contextId"] = session.agent_context_id
     async with httpx.AsyncClient(timeout=settings.request_timeout_seconds) as client:
         response = await client.post(
             f"{settings.agent_base_url}/api/v1/external/agents/{slug}/a2a",

@@ -98,7 +98,10 @@ class FakeV1Client:
 async def test_agent_v1_uses_message_send_and_extracts_json_answer(monkeypatch):
     monkeypatch.setenv("CLOVA_API_KEY", "test-key")
     monkeypatch.setattr(chat.httpx, "AsyncClient", FakeV1Client)
-    session = SessionStore().create()
+    store = SessionStore()
+    session = store.create()
+    store.append_turn(session.id, "이전 질문", "이전 답변")
+    session.agent_context_id = "ctx-old"
     answer, context_id = await chat.call_agent_v1(load_settings(), session, "질문", "v1-slug", True)
     url, options = FakeV1Client.captured
     message = options["json"]["params"]["message"]
@@ -106,5 +109,6 @@ async def test_agent_v1_uses_message_send_and_extracts_json_answer(monkeypatch):
     assert options["json"]["method"] == "message/send"
     assert message["kind"] == "message"
     assert message["parts"][0]["kind"] == "text"
+    assert message["contextId"] == "ctx-old"
     assert answer == "v1 답변"
     assert context_id == "ctx-v1"
