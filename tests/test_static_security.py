@@ -71,3 +71,14 @@ def test_stt_error_uses_friendly_ui_message_but_logs_original_error():
     script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
     assert "일시적 오류 또는 짧은 발화로 인식되지 않았습니다. 다시 시도 부탁드립니다." in script
     assert "log('ERROR',error.message,failedStage||'turn',true)" in script
+
+
+def test_assistant_markdown_like_text_is_rendered_with_safe_line_breaks():
+    script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
+    stylesheet = (ROOT / "static" / "chat-format.css").read_text(encoding="utf-8")
+    page = (ROOT / "static" / "voice.html").read_text(encoding="utf-8")
+    assert "function formatAssistantText" in script
+    assert "document.createTextNode(role==='assistant'?formatAssistantText(text):text)" in script
+    assert "innerHTML=formatAssistantText" not in script
+    assert "white-space: pre-wrap" in stylesheet
+    assert 'href="/static/chat-format.css"' in page
