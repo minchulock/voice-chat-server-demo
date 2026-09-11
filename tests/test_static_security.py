@@ -82,3 +82,11 @@ def test_assistant_markdown_like_text_is_rendered_with_safe_line_breaks():
     assert "innerHTML=formatAssistantText" not in script
     assert "white-space: pre-wrap" in stylesheet
     assert 'href="/static/chat-format.css"' in page
+
+
+def test_display_and_speech_channels_are_used_separately():
+    script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
+    assert "displayText=result.display_text||result.answer" in script
+    assert "speechText=result.speech_text||displayText" in script
+    assert "bubble('assistant',displayText)" in script
+    assert "speak(speechText" in script

@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import load_settings
 from app.schemas import ChatRequest, TtsRequest
 from app.services.chat import call_agent_v1, call_agent_v2, call_model
+from app.services.common import split_voice_reply
 from app.services.stt import transcribe
 from app.services.tts import iter_and_close, open_tts_stream
 from app.sessions import SessionStore
@@ -122,8 +123,16 @@ async def chat(payload: ChatRequest):
             )
     except ValueError as exc:
         raise HTTPException(502, str(exc)) from exc
-    session = sessions.append_turn(session.id, payload.message, answer)
-    return {"answer": answer, "turn": len(session.turns) // 2, "provider": payload.provider, "processingMs": round((time.perf_counter() - started) * 1000)}
+    display_text, speech_text = split_voice_reply(answer)
+    session = sessions.append_turn(session.id, payload.message, display_text)
+    return {
+        "answer": display_text,
+        "display_text": display_text,
+        "speech_text": speech_text,
+        "turn": len(session.turns) // 2,
+        "provider": payload.provider,
+        "processingMs": round((time.perf_counter() - started) * 1000),
+    }
 
 
 @app.post("/api/tts")
