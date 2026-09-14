@@ -100,7 +100,9 @@ def test_push_to_talk_is_default_with_pointer_and_keyboard_controls():
     assert "addEventListener('pointerdown'" in script
     assert "addEventListener('pointerup'" in script
     assert "addEventListener('pointercancel'" in script
-    assert "event.code!=='Space'||event.repeat" in script
+    assert "event.code==='Space'||event.key===' '||event.key==='Spacebar'" in script
+    assert "window.addEventListener('keydown'" in script
+    assert "window.addEventListener('keyup'" in script
     assert "finishOnSilence&&heardVoice" in script
     assert "monitorVad(performance.now(),true)" in script
     assert 'id="input-mode"' in page
