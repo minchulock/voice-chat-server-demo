@@ -16,7 +16,7 @@
 .input-guide {
   padding: 17px 24px;
   border-top: 1px solid #dce6f2;
-  background: linear-gradient(135deg, #f0f7ff, #f1fcf8);
+  background: #f7faff;
 }
 
 .input-guide header {
@@ -32,6 +32,9 @@
   letter-spacing: .12em;
 }
 
+.input-guide header strong { font-size: 14px; }
+.input-guide header em { margin-left: auto; padding: 4px 9px; border-radius: 12px; color: #2878f3; background: #eaf3ff; font-size: 10px; font-style: normal; font-weight: 700; }
+
 .input-guide-steps {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -42,22 +45,24 @@
 .input-guide-steps p,
 .auto-guide {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 6px 10px;
+  grid-template-columns: 28px 1fr;
+  gap: 5px 9px;
   margin: 0;
   padding: 12px;
-  border: 1px solid #d7e5f3;
+  border: 1px solid #dce6f2;
   border-radius: 13px;
   background: #fff;
 }
 
-.input-guide-steps p > i { grid-row: 1 / 4; font-style: normal; font-size: 20px; }
-.input-guide-steps p > b { font-size: 12px; }
-.input-guide-steps p > span { color: #53637a; font-size: 11px; }
-.input-guide-steps p small { display: block; color: #96a5b8; font: 9px ui-monospace, monospace; }
+.input-guide-steps p > i,
+.auto-guide > i { grid-row: 1 / 4; color: #2878f3; font: 700 10px/1.5 ui-monospace, monospace; }
+.input-guide-steps p > b { color: #34455d; font-size: 12px; }
+.input-guide-steps p > span { color: #607188; font-size: 11px; line-height: 1.45; }
+.input-guide-steps p > small { display: flex; align-items: center; gap: 5px; }
+.input-guide-steps code { padding: 2px 5px; border-radius: 5px; color: #71839a; background: #f2f6fb; font: 9px ui-monospace, monospace; }
+.input-guide-steps mark { color: #9bacc0; background: none; font-size: 9px; }
 .input-guide-note { margin: 10px 0 0; color: #64758b; font-size: 11px; }
 .auto-guide { margin-top: 12px; align-items: center; }
-.auto-guide > i { grid-row: 1; color: #20bea0; font-style: normal; font-size: 24px; }
 .auto-guide span { display: flex; flex-direction: column; gap: 3px; }
 .auto-guide small { color: #7d8da3; }
 
@@ -76,6 +81,8 @@
   background: #ffffff0d;
   font-size: 12px;
 }
+
+.voice-ptt-guide span b { margin-right: 5px; color: #72e0cc; font-size: 10px; letter-spacing: .08em; }
 
 .voice-ptt-guide small { width: 100%; color: #b8cbd9; }
 

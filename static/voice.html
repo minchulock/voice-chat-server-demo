@@ -40,13 +40,13 @@
           <div><p><i>01</i> 유아학비 지원 내용이 뭔가요?</p><p><i>02</i> 퇴사 후 건강보험은 어떻게 변경해야 하나요?</p><p><i>03</i> 여권을 분실했는데 재발급은 어떻게 하고 얼마나 걸리나요?</p></div>
         </section>
         <section class="input-guide" data-guide-mode="ptt" aria-label="Push-to-Talk 사용법">
-          <header><small>PUSH-TO-TALK · 기본</small><strong>누르고 말한 뒤 놓아주세요</strong></header>
-          <div class="input-guide-steps"><p><i>🖱️</i><b>마우스</b><span>누르면 녹음 시작<small>pointerdown</small></span><span>놓으면 녹음 종료<small>pointerup</small></span></p><p><i>👆</i><b>터치</b><span>누르고 말하기<small>pointerdown</small></span><span>손을 떼면 종료<small>pointerup · cancel</small></span></p><p><i>␣</i><b>키보드</b><span>Space 누르면 시작<small>keydown</small></span><span>Space 떼면 종료<small>keyup</small></span></p></div>
+          <header><small>VOICE GUIDE</small><strong>누르고 말한 뒤 놓아주세요</strong><em>Push-to-Talk</em></header>
+          <div class="input-guide-steps"><p><i>01</i><b>마우스</b><span>버튼을 누르면 시작하고 놓으면 종료</span><small><code>pointerdown</code><mark>→</mark><code>pointerup</code></small></p><p><i>02</i><b>터치</b><span>버튼을 누르고 말한 뒤 손가락 떼기</span><small><code>pointerdown</code><mark>→</mark><code>pointerup · cancel</code></small></p><p><i>03</i><b>키보드</b><span>Space를 누르고 말한 뒤 키 떼기</span><small><code>keydown</code><mark>→</mark><code>keyup</code></small></p></div>
           <p class="input-guide-note">최초 한 번은 마이크 권한을 허용한 뒤, 다시 누르고 말씀해 주세요.</p>
         </section>
         <section class="input-guide" data-guide-mode="auto" aria-label="자동 VAD 사용법" hidden>
-          <header><small>AUTO VAD · 핸즈프리</small><strong>한 번 누르고 자연스럽게 말씀하세요</strong></header>
-          <div class="auto-guide"><i>◉</i><span><b>말이 끝나면 자동으로 전송합니다</b><small>침묵을 감지해 다음 Turn까지 자동으로 이어집니다.</small></span></div>
+          <header><small>VOICE GUIDE</small><strong>한 번 누르고 자연스럽게 말씀하세요</strong><em>Auto VAD</em></header>
+          <div class="auto-guide"><i>01</i><span><b>말이 끝나면 자동으로 전송합니다</b><small>침묵을 감지해 다음 Turn까지 자동으로 이어집니다.</small></span></div>
         </section>
         <div class="voice-control"><canvas id="meter" width="320" height="60"></canvas><button id="mic" type="button" disabled aria-label="대화 시작"><span></span></button><div><strong id="control-title">준비 중</strong><small id="control-hint">잠시 기다려 주세요</small></div></div>
       </section>
@@ -68,7 +68,7 @@
     </section>
   </div>
 
-  <div id="voice-mode" class="voice-mode" hidden><header><b>VOICE CONVERSATION</b><button id="close-voice-mode" type="button">챗봇 모드</button></header><main><div id="orb" class="orb"><i></i><i></i><span></span></div><small id="voice-state">READY</small><h2 id="voice-title">대화를 시작할 준비가 됐어요</h2><p id="voice-copy">버튼을 누르고 자연스럽게 말하세요.</p><div class="voice-ptt-guide" data-guide-mode="ptt"><span>🖱️ 버튼을 누르고 말하기</span><span>␣ Space를 누르고 말하기</span><small>놓으면 녹음 종료 · 최초 사용 시 마이크 권한 허용 후 다시 누르세요</small></div><div class="voice-ptt-guide" data-guide-mode="auto" hidden><span>◉ 한 번 누르고 말하기</span><small>침묵 감지 후 자동 전송 · 다음 Turn 자동 시작</small></div><button id="voice-mic" type="button">대화 시작</button></main><footer><span id="voice-session">SESSION —</span><b id="voice-turn">TURN 0</b><button id="voice-end" type="button" disabled>세션 종료</button></footer></div>
+  <div id="voice-mode" class="voice-mode" hidden><header><b>VOICE CONVERSATION</b><button id="close-voice-mode" type="button">챗봇 모드</button></header><main><div id="orb" class="orb"><i></i><i></i><span></span></div><small id="voice-state">READY</small><h2 id="voice-title">대화를 시작할 준비가 됐어요</h2><p id="voice-copy">버튼을 누르고 자연스럽게 말하세요.</p><div class="voice-ptt-guide" data-guide-mode="ptt"><span><b>마우스</b> 버튼을 누르고 말하기</span><span><b>키보드</b> Space를 누르고 말하기</span><small>버튼이나 키를 놓으면 녹음이 종료됩니다</small></div><div class="voice-ptt-guide" data-guide-mode="auto" hidden><span><b>자동 VAD</b> 한 번 누르고 말하기</span><small>침묵 감지 후 자동 전송 · 다음 Turn 자동 시작</small></div><button id="voice-mic" type="button">대화 시작</button></main><footer><span id="voice-session">SESSION —</span><b id="voice-turn">TURN 0</b><button id="voice-end" type="button" disabled>세션 종료</button></footer></div>
   <audio id="audio" preload="auto"></audio>
   <script src="/static/voice.js"></script>
 </body>

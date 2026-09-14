@@ -106,6 +106,8 @@ def test_push_to_talk_is_default_with_pointer_and_keyboard_controls():
     assert "finishOnSilence&&heardVoice" in script
     assert "monitorVad(performance.now(),true)" in script
     assert "prepareMicrophonePermission" in script
+    assert "navigator.permissions" not in script
+    assert "permissionStream.getTracks().forEach" in script
     assert "return false" in script
     assert "startListening(null,true,false)" in script
     assert "startListening(null,false,true)" in script
@@ -115,6 +117,7 @@ def test_push_to_talk_is_default_with_pointer_and_keyboard_controls():
     assert 'data-guide-mode="ptt"' in page
     assert 'pointerdown' in page
     assert 'pointerup · cancel' in page
-    assert 'Space 누르면 시작' in page
-    assert 'Space 떼면 종료' in page
+    assert 'Space를 누르고 말한 뒤 키 떼기' in page
+    assert '<code>keydown</code>' in page
+    assert '<code>keyup</code>' in page
     assert "syncInputGuides()" in script
