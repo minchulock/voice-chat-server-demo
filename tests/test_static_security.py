@@ -105,5 +105,16 @@ def test_push_to_talk_is_default_with_pointer_and_keyboard_controls():
     assert "window.addEventListener('keyup'" in script
     assert "finishOnSilence&&heardVoice" in script
     assert "monitorVad(performance.now(),true)" in script
+    assert "prepareMicrophonePermission" in script
+    assert "return false" in script
+    assert "startListening(null,true,false)" in script
+    assert "startListening(null,false,true)" in script
+    assert "previousMode!==settings.inputMode" in script
     assert 'id="input-mode"' in page
     assert 'value="ptt">Push-to-Talk · 기본' in page
+    assert 'data-guide-mode="ptt"' in page
+    assert 'pointerdown' in page
+    assert 'pointerup · cancel' in page
+    assert 'Space 누르면 시작' in page
+    assert 'Space 떼면 종료' in page
+    assert "syncInputGuides()" in script
