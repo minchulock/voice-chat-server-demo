@@ -37,7 +37,7 @@ TTS 출력 규칙
 사용자: 안녕하세요.
 
 어시스턴트: 안녕하세요. 무엇을 도와드릴까요?`;
-const DEFAULTS={inputMode:'ptt',vadThreshold:.018,silenceMs:1100,maxListenMs:20000,sttModel:'whisper-large-v3',sttLanguage:'ko',sttPrompt:'',provider:'agent_v1',agentV1Slug:'YAv53FJNQkST0qhoOs1H_g',agentV2Slug:'w4r7BhFhTTueoOCISFRFPg',modelName:'google/gemma-4-31B-it',systemPrompt:DEFAULT_SYSTEM_PROMPT,useContext:true,ttsModel:'melo-tts-ko',ttsSpeed:1.6,streamFormat:'sse',bargeIn:true};
+const DEFAULTS={inputMode:'ptt',vadThreshold:.018,silenceMs:1100,maxListenMs:20000,sttModel:'whisper-large-v3',sttLanguage:'ko',sttPrompt:'',provider:'agent_v1',agentV1Slug:'n5KjTKxOQ_q5biAokqBZwA',agentV2Slug:'w4r7BhFhTTueoOCISFRFPg',modelName:'google/gemma-4-31B-it',systemPrompt:DEFAULT_SYSTEM_PROMPT,useContext:true,ttsModel:'melo-tts-ko',ttsSpeed:1.6,streamFormat:'sse',bargeIn:true};
 let settings=loadSettings(),sessionId='',turn=0,sessionActive=false,busy=false,transitioning=false,generation=0;
 let mediaStream=null,mediaRecorder=null,audioContext=null,analyser=null,meterFrame=0,recordTimer=0,lastVoice=0,heardVoice=false,recordParts=[];
 let turnAbort=null,nextTurnTimer=0,playbackUrl='',playbackUnlocked=false;
@@ -45,7 +45,7 @@ let pttHeld=false,pttStarting=false,micPermissionReady=false;
 const AUDIO_CONSTRAINTS={channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true};
 const mic=$('#mic'),audio=$('#audio'),conversation=$('#conversation'),errorBox=$('#error'),caption=$('#caption'),title=$('#control-title'),hint=$('#control-hint'),logView=$('#log');
 
-function loadSettings(){try{const saved=JSON.parse(localStorage.getItem('voiceChatSettingsV2')||'{}');if(saved.provider==='agent')saved.provider='agent_v1';if(saved.agentSlug&&!saved.agentV1Slug)saved.agentV1Slug=saved.agentSlug;delete saved.agentSlug;return{...DEFAULTS,...saved}}catch{return {...DEFAULTS}}}
+function loadSettings(){try{const saved=JSON.parse(localStorage.getItem('voiceChatSettingsV2')||'{}');if(saved.provider==='agent')saved.provider='agent_v1';if(saved.agentSlug&&!saved.agentV1Slug)saved.agentV1Slug=saved.agentSlug;if(saved.agentV1Slug==='YAv53FJNQkST0qhoOs1H_g')saved.agentV1Slug=DEFAULTS.agentV1Slug;delete saved.agentSlug;return{...DEFAULTS,...saved}}catch{return {...DEFAULTS}}}
 function saveLocal(){let previousMode=DEFAULTS.inputMode;try{previousMode=JSON.parse(localStorage.getItem('voiceChatSettingsV2')||'{}').inputMode||DEFAULTS.inputMode}catch{}localStorage.setItem('voiceChatSettingsV2',JSON.stringify(settings));if(previousMode!==settings.inputMode)resetInputPipeline()}
 function resetInputPipeline(){clearTimeout(nextTurnTimer);pttHeld=false;pttStarting=false;if(mediaRecorder?.state==='recording'){mediaRecorder.onstop=null;stopMedia().catch(()=>{})}busy=false;resetStages();title.textContent='입력 모드가 변경됐어요';hint.textContent=settings.inputMode==='ptt'?'버튼이나 Space 키를 누른 상태로 말하세요':'대화 시작 버튼을 누르면 자동으로 듣습니다';caption.textContent=settings.inputMode==='ptt'?'CLIENT · Push-to-Talk 대기':'CLIENT · 자동 VAD 대기'}
 function log(kind,message,detail='',bad=false){logView.querySelector(':scope>p')?.remove();const row=document.createElement('div');row.className=`log-row${bad?' error':''}`;const time=document.createElement('time');time.textContent=new Date().toLocaleTimeString('ko-KR',{hour12:false});const type=document.createElement('b');type.textContent=kind;const text=document.createElement('span');text.textContent=message;const meta=document.createElement('em');meta.textContent=detail;row.append(time,type,text,meta);logView.append(row);logView.scrollTop=logView.scrollHeight}

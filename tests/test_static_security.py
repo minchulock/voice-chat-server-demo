@@ -19,7 +19,8 @@ def test_no_local_model_runtime_is_shipped():
 
 def test_browser_defaults_match_server_defaults():
     script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
-    assert "agentV1Slug:'YAv53FJNQkST0qhoOs1H_g'" in script
+    assert "agentV1Slug:'n5KjTKxOQ_q5biAokqBZwA'" in script
+    assert "saved.agentV1Slug==='YAv53FJNQkST0qhoOs1H_g'" in script
     assert "agentV2Slug:'w4r7BhFhTTueoOCISFRFPg'" in script
     assert "if(saved.provider==='agent')saved.provider='agent_v1'" in script
     assert "if(saved.agentSlug&&!saved.agentV1Slug)saved.agentV1Slug=saved.agentSlug" in script
