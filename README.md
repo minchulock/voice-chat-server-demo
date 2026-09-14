@@ -24,7 +24,7 @@ Browser ← sentence prefetch audio/SSE ← Speaker
 
 ## 주요 기능
 
-- 브라우저 VAD 기반 자동 발화 종료
+- Push-to-Talk 기본 입력과 자동 VAD 선택
 - WAV 파일을 디스크에 저장하지 않는 메모리 오디오 전송
 - CLOVA STT API 동기 전사
 - Agent v1 API, Agent v2 API(A2A 1.0), Model API 선택
@@ -35,8 +35,20 @@ Browser ← sentence prefetch audio/SSE ← Speaker
 - TTS API `audio`/`sse` 선택
 - 답변 문장 분할과 한 문장 선행 합성
 - TTS 재생 중 발화 인터럽트
-- Turn 종료 후 자동 Listening
+- PTT에서는 다음 입력 대기, 자동 VAD에서는 Turn 종료 후 자동 Listening
 - 실시간 API·스트리밍 로그
+
+## Push-to-Talk 사용법
+
+기본 입력 방식은 Push-to-Talk입니다. 버튼이나 키를 누르고 있는 동안만 녹음하며, 놓는 즉시 발화를 종료하고 STT API로 전송합니다.
+
+| 입력 장치 | 녹음 시작 | 녹음 종료 |
+|---|---|---|
+| 마우스 | 마이크 버튼 누르기 | 버튼 놓기 |
+| 터치 | 마이크 버튼 터치 유지 | 손가락 떼기 |
+| 키보드 | `Space` 누르고 있기 | `Space` 떼기 |
+
+설정의 `01 INPUT & VAD`에서 `자동 VAD · 핸즈프리`를 선택하면 기존처럼 침묵 감지로 발화를 종료하고 다음 Turn의 Listening을 자동 시작합니다. 텍스트 입력란이나 설정 필드에 포커스가 있을 때는 Space 단축키가 녹음을 시작하지 않습니다. 포인터 취소 또는 브라우저 포커스 이탈 시에는 녹음을 안전하게 종료합니다.
 
 ## 로컬 개발
 

@@ -90,3 +90,18 @@ def test_display_and_speech_channels_are_used_separately():
     assert "speechText=result.speech_text||displayText" in script
     assert "bubble('assistant',displayText)" in script
     assert "speak(speechText" in script
+
+
+def test_push_to_talk_is_default_with_pointer_and_keyboard_controls():
+    script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
+    page = (ROOT / "static" / "voice.html").read_text(encoding="utf-8")
+    assert "inputMode:'ptt'" in script
+    assert "createSession(true)" in script
+    assert "addEventListener('pointerdown'" in script
+    assert "addEventListener('pointerup'" in script
+    assert "addEventListener('pointercancel'" in script
+    assert "event.code!=='Space'||event.repeat" in script
+    assert "finishOnSilence&&heardVoice" in script
+    assert "monitorVad(performance.now(),true)" in script
+    assert 'id="input-mode"' in page
+    assert 'value="ptt">Push-to-Talk · 기본' in page

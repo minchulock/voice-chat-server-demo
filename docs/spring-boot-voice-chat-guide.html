@@ -51,12 +51,12 @@
         <div class="node client"><b>Prefetch + Speaker</b><span>현재 문장 재생 중<br>다음 문장 합성</span></div>
       </div></div>
       <ol class="steps">
-        <li>세션 생성 후 브라우저가 마이크 스트림을 열고, AnalyserNode의 RMS 값으로 발화 시작과 종료를 판정합니다.</li>
+        <li>기본 Push-to-Talk에서는 누름과 놓기 이벤트가 녹음 경계를 정합니다. 선택형 자동 VAD에서는 AnalyserNode의 RMS 값으로 발화 시작과 종료를 판정합니다.</li>
         <li>MediaRecorder가 만든 조각은 배열에만 보관하며, 발화 종료 시 Blob으로 합쳐 Spring의 <code>/api/stt</code>에 raw body로 전송합니다.</li>
         <li>Spring은 메모리의 바이트를 multipart 파일 파트로 감싸 외부 STT API에 전달합니다. 디스크 저장은 필요 없습니다.</li>
         <li>전사문을 Agent 또는 Model API에 보내 답변을 받고 세션 대화 이력을 갱신합니다.</li>
         <li>브라우저가 답변을 문장으로 분리합니다. 첫 문장 TTS를 받고 재생하는 즉시 두 번째 문장 요청을 병렬로 시작합니다.</li>
-        <li>마지막 문장 재생이 끝나면 자동으로 다음 Turn VAD로 돌아갑니다. 재생 중 사용자 발화가 감지되면 TTS를 중단하고 바로 새 Turn을 녹음합니다.</li>
+        <li>마지막 문장 재생이 끝나면 Push-to-Talk는 다음 누름을 기다리고, 자동 VAD는 다음 Turn Listening으로 돌아갑니다. 재생 중 사용자 발화가 감지되면 TTS를 중단하고 바로 새 Turn을 녹음합니다.</li>
       </ol>
     </section>
 
@@ -252,7 +252,7 @@ public Mono&lt;ChatResponse&gt; chat(@Valid @RequestBody ChatRequest request) {
     </section>
 
     <section id="browser">
-      <h2>6. 브라우저 Mic · VAD · in-memory audio</h2>
+      <h2>6. 브라우저 Push-to-Talk · VAD · in-memory audio</h2>
       <h3>마이크 열기와 녹음</h3>
       <pre><code>let stream, recorder, analyser, frame;
 let chunks = [], heardVoice = false, lastVoiceAt = 0;
@@ -285,6 +285,44 @@ function preferredMime() {
   return ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm']
     .find(MediaRecorder.isTypeSupported.bind(MediaRecorder)) || '';
 }</code></pre>
+      <h3>기본 UX: Push-to-Talk</h3>
+      <p>누르고 있는 동안만 녹음하고 놓는 즉시 <code>MediaRecorder.stop()</code>을 호출합니다. 마우스와 터치는 Pointer Events 하나로 처리하고, 키보드는 Space의 누름과 놓기를 같은 함수에 연결합니다. 입력란에 포커스가 있거나 키 반복 이벤트인 경우에는 시작하지 않습니다.</p>
+      <table><thead><tr><th>입력</th><th>녹음 시작</th><th>녹음 종료</th></tr></thead><tbody>
+        <tr><td>마우스</td><td>버튼 <code>pointerdown</code></td><td><code>pointerup</code></td></tr>
+        <tr><td>터치</td><td>버튼 <code>pointerdown</code></td><td><code>pointerup</code></td></tr>
+        <tr><td>키보드</td><td>Space <code>keydown</code></td><td>Space <code>keyup</code></td></tr>
+      </tbody></table>
+      <pre><code>let pttHeld = false;
+const micButton = document.querySelector('#mic');
+
+async function beginPtt(event) {
+  if (pttHeld || event?.repeat || isEditable(event?.target)) return;
+  event?.preventDefault();
+  pttHeld = true;
+  await startListening();
+  if (!pttHeld &amp;&amp; recorder?.state === 'recording') recorder.stop();
+}
+
+function endPtt(event) {
+  if (!pttHeld) return;
+  event?.preventDefault();
+  pttHeld = false;
+  if (recorder?.state === 'recording') recorder.stop();
+}
+
+micButton.addEventListener('pointerdown', beginPtt);
+micButton.addEventListener('pointerup', endPtt);
+micButton.addEventListener('pointercancel', endPtt);
+window.addEventListener('pointerup', endPtt); // 버튼 밖에서 놓는 경우
+window.addEventListener('blur', endPtt);      // 탭 전환 시 안전 종료
+
+document.addEventListener('keydown', event =&gt; {
+  if (event.code === 'Space') beginPtt(event);
+});
+document.addEventListener('keyup', event =&gt; {
+  if (event.code === 'Space') endPtt(event);
+});</code></pre>
+      <p class="callout"><strong>VAD의 역할:</strong> Push-to-Talk 모드에서는 무음 여부와 레벨 표시, 최대 녹음 시간 보호에 사용하고 침묵만으로 녹음을 끝내지 않습니다. 자동 VAD 모드에서만 설정된 침묵 시간이 지나면 Turn을 종료합니다. TTS 발화 인터럽트로 시작된 녹음은 사용자가 버튼을 누르지 않았으므로 침묵 종료를 적용합니다.</p>
       <h3>RMS 기반 VAD</h3>
       <pre><code>function monitorVad(startedAt) {
   const values = new Uint8Array(analyser.fftSize);
@@ -471,7 +509,7 @@ generation 증가 → AbortController.abort() → MediaRecorder/track 정리
         <li>Chrome, Safari에서 마이크 권한 거부, 무음, 긴 발화, TTS 인터럽트, 세션 종료/재시작을 각각 테스트합니다.</li>
       </ul>
       <h3>권장 구현 순서</h3>
-      <ol class="steps"><li>정적 HTML과 세션 API부터 구성합니다.</li><li>raw 오디오 수신과 multipart STT를 연결합니다.</li><li>Agent 또는 Model 중 하나를 먼저 연결한 뒤 세션 문맥을 추가합니다.</li><li>TTS Audio 프록시를 먼저 완성하고, 필요할 때 SSE 파서를 추가합니다.</li><li>자동 다음 Turn, AbortController, Barge-in 순으로 상태 머신을 확장합니다.</li><li>HTTPS와 Nginx buffering 해제를 적용하고 실제 브라우저에서 종단 테스트합니다.</li></ol>
+      <ol class="steps"><li>정적 HTML과 세션 API부터 구성합니다.</li><li>Push-to-Talk와 raw 오디오 수신, multipart STT를 연결합니다.</li><li>Agent 또는 Model 중 하나를 먼저 연결한 뒤 세션 문맥을 추가합니다.</li><li>TTS Audio 프록시를 먼저 완성하고, 필요할 때 SSE 파서를 추가합니다.</li><li>선택형 자동 VAD, AbortController, Barge-in 순으로 상태 머신을 확장합니다.</li><li>HTTPS와 Nginx buffering 해제를 적용하고 실제 브라우저에서 종단 테스트합니다.</li></ol>
     </section>
 
     <footer class="footer">이 문서는 voice-chat-server-demo의 Python/FastAPI 구현 계약을 Spring Boot WebFlux로 옮기기 위한 개발 가이드입니다. 예제 코드는 핵심 흐름을 설명하며, 운영 적용 전 예외 매핑·재시도·메트릭·Redis 세션·통합 테스트를 보강해야 합니다.</footer>

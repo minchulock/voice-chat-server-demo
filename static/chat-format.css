@@ -2,3 +2,9 @@
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
+
+#mic,
+#voice-mic {
+  touch-action: none;
+  user-select: none;
+}
