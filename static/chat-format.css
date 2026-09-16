@@ -3,6 +3,34 @@
   white-space: pre-wrap;
 }
 
+.bubble.assistant.has-speech {
+  position: relative;
+  padding-right: 112px;
+}
+
+.bubble-copy { white-space: pre-wrap; }
+
+.full-speech-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 9px;
+  border: 1px solid #d2dfed;
+  border-radius: 16px;
+  color: #52647b;
+  background: #fff;
+  font-size: 10px;
+}
+
+.full-speech-button span { font-size: 12px; }
+.full-speech-button b { font-weight: 700; }
+.full-speech-button:hover:not(:disabled) { color: #2878f3; border-color: #9fc2f7; background: #f4f8ff; }
+.full-speech-button:disabled { cursor: wait; opacity: .45; }
+.full-speech-button.playing { color: #fff; border-color: #2878f3; background: #2878f3; }
+
 #mic,
 #voice-mic {
   touch-action: none;
@@ -87,6 +115,8 @@
 .voice-ptt-guide small { width: 100%; color: #b8cbd9; }
 
 @media (max-width: 800px) {
+  .bubble.assistant.has-speech { padding-right: 16px; padding-top: 48px; }
+  .full-speech-button { top: 10px; left: 12px; right: auto; }
   .input-guide-steps { grid-template-columns: 1fr; }
   .input-guide header { align-items: flex-start; flex-direction: column; gap: 4px; }
 }

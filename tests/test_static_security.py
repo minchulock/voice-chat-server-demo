@@ -79,7 +79,7 @@ def test_assistant_markdown_like_text_is_rendered_with_safe_line_breaks():
     stylesheet = (ROOT / "static" / "chat-format.css").read_text(encoding="utf-8")
     page = (ROOT / "static" / "voice.html").read_text(encoding="utf-8")
     assert "function formatAssistantText" in script
-    assert "document.createTextNode(role==='assistant'?formatAssistantText(text):text)" in script
+    assert "copy.append(document.createTextNode(role==='assistant'?formatAssistantText(text):text))" in script
     assert "innerHTML=formatAssistantText" not in script
     assert "white-space: pre-wrap" in stylesheet
     assert 'href="/static/chat-format.css"' in page
@@ -89,8 +89,21 @@ def test_display_and_speech_channels_are_used_separately():
     script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
     assert "displayText=result.display_text||result.answer" in script
     assert "speechText=result.speech_text||displayText" in script
-    assert "bubble('assistant',displayText)" in script
+    assert "answerBubble=bubble('assistant',displayText)" in script
     assert "speak(speechText" in script
+
+
+def test_full_answer_can_be_played_on_demand():
+    script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
+    stylesheet = (ROOT / "static" / "chat-format.css").read_text(encoding="utf-8")
+    assert "className='full-speech-button'" in script
+    assert "답변 전문 듣기" in script
+    assert "playFullAnswer(text,button)" in script
+    assert "fullTextForSpeech(text)" in script
+    assert "splitSentences(fullTextForSpeech(text))" in script
+    assert "manualSpeechAbort" in script
+    assert "mediaRecorder.onstop=null;await stopMedia()" in script
+    assert ".full-speech-button" in stylesheet
 
 
 def test_push_to_talk_is_default_with_pointer_and_keyboard_controls():
