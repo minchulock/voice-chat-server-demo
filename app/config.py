@@ -77,7 +77,7 @@ def load_settings() -> Settings:
         stt_url=os.getenv("STT_API_URL", "https://alpha-api.clovastudio-gov.com/v1/audio/transcriptions").strip(),
         tts_url=os.getenv("TTS_API_URL", "https://alpha-api.clovastudio-gov.com/v1/audio/speech").strip(),
         agent_base_url=os.getenv("AGENT_BASE_URL", "https://alpha-api.clovastudio-gov.com").rstrip("/"),
-        agent_v2_slug=os.getenv("AGENT_V2_SLUG", "3p-wwnDkTfO4RuC-GQp_6g").strip(),
+        agent_v2_slug=os.getenv("AGENT_V2_SLUG", "lK5muLmzRZ2bOC9jx4JDQg").strip(),
         model_base_url=os.getenv("MODEL_BASE_URL", "https://alpha-api.clovastudio-gov.com/api/v1").rstrip("/"),
         model_name=os.getenv("MODEL_NAME", "google/gemma-4-31B-it").strip(),
         model_system_prompt=os.getenv("MODEL_SYSTEM_PROMPT", DEFAULT_SYSTEM_PROMPT).strip(),

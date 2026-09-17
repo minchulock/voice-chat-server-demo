@@ -24,7 +24,7 @@ Browser ← sentence prefetch audio/SSE ← Speaker
 
 ## 주요 기능
 
-- Push-to-Talk 기본 입력과 자동 VAD 선택
+- 하나의 버튼에서 짧은 클릭 연속대화와 길게 누르기 Push-to-Talk 자동 구분
 - WAV 파일을 디스크에 저장하지 않는 메모리 오디오 전송
 - CLOVA STT API 동기 전사
 - Agent v2 API(A2A 1.0), Model API 선택
@@ -39,17 +39,18 @@ Browser ← sentence prefetch audio/SSE ← Speaker
 - PTT에서는 다음 입력 대기, 자동 VAD에서는 Turn 종료 후 자동 Listening
 - 실시간 API·스트리밍 로그
 
-## Push-to-Talk 사용법
+## 음성 입력 사용법
 
-기본 입력 방식은 Push-to-Talk입니다. 버튼이나 키를 누르고 있는 동안만 녹음하며, 놓는 즉시 발화를 종료하고 STT API로 전송합니다.
+마이크 버튼 하나가 누르는 시간에 따라 입력 방식을 자동으로 구분합니다. 버튼을 짧게 한 번 클릭하면 연속대화 모드가 시작되며, 사용자가 세션 종료를 누를 때까지 자동 VAD가 발화 종료를 감지하고 다음 Turn을 이어서 듣습니다. 버튼을 길게 누르면 Push-to-Talk로 동작하여 누르는 동안만 녹음하고 놓는 즉시 STT API로 전송합니다.
 
-| 입력 장치 | 녹음 시작 | 녹음 종료 |
+| 동작 | 시작 | 종료 |
 |---|---|---|
-| 마우스 | 마이크 버튼 누르기 | 버튼 놓기 |
-| 터치 | 마이크 버튼 터치 유지 | 손가락 떼기 |
-| 키보드 | `Space` 누르고 있기 | `Space` 떼기 |
+| 연속대화 | 마이크 버튼 짧게 클릭 | `세션 종료` 버튼 클릭 |
+| 마우스 PTT | 마이크 버튼 길게 누르기 | 버튼 놓기 |
+| 터치 PTT | 마이크 버튼 길게 터치 | 손가락 떼기 |
+| 키보드 PTT | `Space` 누르고 있기 | `Space` 떼기 |
 
-설정의 `01 INPUT & VAD`에서 `자동 VAD · 핸즈프리`를 선택하면 기존처럼 침묵 감지로 발화를 종료하고 다음 Turn의 Listening을 자동 시작합니다. 텍스트 입력란이나 설정 필드에 포커스가 있을 때는 Space 단축키가 녹음을 시작하지 않습니다. 포인터 취소 또는 브라우저 포커스 이탈 시에는 녹음을 안전하게 종료합니다.
+길게 누르기는 0.32초부터 PTT로 판정합니다. 텍스트 입력란이나 설정 필드에 포커스가 있을 때는 Space 단축키가 녹음을 시작하지 않습니다. 포인터 취소 또는 브라우저 포커스 이탈 시에는 녹음을 안전하게 종료합니다.
 
 최초 PTT 입력은 마이크 권한 확인에만 사용합니다. 브라우저에 권한이 이미 저장되어 있더라도 첫 입력 직후에는 녹음을 시작하지 않으며, 안내 문구가 바뀐 뒤 마이크 버튼이나 Space 키를 다시 누른 상태로 말합니다. 권한 창에서 발생한 포인터 해제 이벤트가 페이지로 돌아오지 않는 브라우저가 있으므로, 권한 획득 동작을 첫 PTT 녹음과 의도적으로 분리했습니다. PTT 녹음은 침묵으로 종료되지 않으며 버튼이나 Space 키를 놓을 때만 종료됩니다. 자동 VAD만 침묵 시간에 따라 종료됩니다.
 
@@ -83,7 +84,7 @@ CLOVA_API_KEY=실제_API_KEY
 STT_API_URL=https://alpha-api.clovastudio-gov.com/v1/audio/transcriptions
 TTS_API_URL=https://alpha-api.clovastudio-gov.com/v1/audio/speech
 AGENT_BASE_URL=https://alpha-api.clovastudio-gov.com
-AGENT_V2_SLUG=3p-wwnDkTfO4RuC-GQp_6g
+AGENT_V2_SLUG=lK5muLmzRZ2bOC9jx4JDQg
 MODEL_BASE_URL=https://alpha-api.clovastudio-gov.com/api/v1
 MODEL_NAME=google/gemma-4-31B-it
 ```
@@ -188,7 +189,7 @@ sudo ./deploy/update.sh
 STT_API_URL=https://alpha-api.clovastudio-gov.com/v1/audio/transcriptions
 TTS_API_URL=https://alpha-api.clovastudio-gov.com/v1/audio/speech
 AGENT_BASE_URL=https://alpha-api.clovastudio-gov.com
-AGENT_V2_SLUG=3p-wwnDkTfO4RuC-GQp_6g
+AGENT_V2_SLUG=lK5muLmzRZ2bOC9jx4JDQg
 MODEL_BASE_URL=https://alpha-api.clovastudio-gov.com/api/v1
 MODEL_NAME=google/gemma-4-31B-it
 ```

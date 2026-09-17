@@ -20,9 +20,9 @@ def test_no_local_model_runtime_is_shipped():
 def test_browser_defaults_match_server_defaults():
     script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
     assert "provider:'agent_v2'" in script
-    assert "agentV2Slug:'3p-wwnDkTfO4RuC-GQp_6g'" in script
+    assert "agentV2Slug:'lK5muLmzRZ2bOC9jx4JDQg'" in script
     assert "saved.provider==='agent_v1'" in script
-    assert "saved.agentV2Slug==='w4r7BhFhTTueoOCISFRFPg'" in script
+    assert "'w4r7BhFhTTueoOCISFRFPg','3p-wwnDkTfO4RuC-GQp_6g'" in script
     assert "agent_v1_slug:" not in script
     assert "settings.agentV1Slug" not in script
     assert "modelName:'google/gemma-4-31B-it'" in script
@@ -111,10 +111,16 @@ def test_full_answer_can_be_played_on_demand():
     assert ".full-speech-button" in stylesheet
 
 
-def test_push_to_talk_is_default_with_pointer_and_keyboard_controls():
+def test_single_button_supports_continuous_mode_and_push_to_talk():
     script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
     page = (ROOT / "static" / "voice.html").read_text(encoding="utf-8")
-    assert "inputMode:'ptt'" in script
+    assert "inputMode:'hybrid'" in script
+    assert "const PTT_HOLD_MS=320" in script
+    assert "function beginHybridPress" in script
+    assert "function endHybridPress" in script
+    assert "pressTimer=setTimeout" in script
+    assert "activeInputMode='auto'" in script
+    assert "activeInputMode='ptt'" in script
     assert "createSession(true)" in script
     assert "addEventListener('pointerdown'" in script
     assert "addEventListener('pointerup'" in script
@@ -130,13 +136,11 @@ def test_push_to_talk_is_default_with_pointer_and_keyboard_controls():
     assert "return false" in script
     assert "startListening(null,true,false)" in script
     assert "startListening(null,false,true)" in script
-    assert "previousMode!==settings.inputMode" in script
     assert 'id="input-mode"' in page
-    assert 'value="ptt">Push-to-Talk · 기본' in page
+    assert 'value="hybrid">클릭: 연속대화 · 길게 누름: PTT' in page
     assert 'data-guide-mode="ptt"' in page
-    assert 'pointerdown' in page
-    assert 'pointerup · cancel' in page
-    assert 'Space를 누르고 말한 뒤 키 떼기' in page
+    assert '버튼을 길게 누르면 Push-to-Talk' in page
+    assert '버튼을 한 번 클릭하면 연속대화' in page
     assert '<code>keydown</code>' in page
     assert '<code>keyup</code>' in page
     assert "syncInputGuides()" in script
