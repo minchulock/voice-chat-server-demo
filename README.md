@@ -1,6 +1,6 @@
 # VOICE24 AI — Server–Client Voice Chat Demo
 
-CLOVA Studio GOV의 STT API, Agent v1/v2 API 또는 Model API, Streaming TTS API를 연결한 브라우저 음성 챗봇 데모입니다.
+CLOVA Studio GOV의 STT API, Agent v2 API 또는 Model API, Streaming TTS API를 연결한 브라우저 음성 챗봇 데모입니다.
 
 이 저장소에는 로컬 AI 모델, 모델 가중치, MLX, Ollama, Whisper 서버, 로컬 TTS 서버가 포함되지 않습니다. 브라우저는 마이크·VAD·오디오 재생을 담당하고 API 키가 필요한 모든 요청은 FastAPI 서버가 처리합니다.
 
@@ -27,7 +27,7 @@ Browser ← sentence prefetch audio/SSE ← Speaker
 - Push-to-Talk 기본 입력과 자동 VAD 선택
 - WAV 파일을 디스크에 저장하지 않는 메모리 오디오 전송
 - CLOVA STT API 동기 전사
-- Agent v1 API, Agent v2 API(A2A 1.0), Model API 선택
+- Agent v2 API(A2A 1.0), Model API 선택
 - 구조화 응답의 `display_text`는 화면에, `speech_text`는 TTS에 분리 전달
 - Agent 응답 대기 애니메이션
 - Session 기반 멀티턴 문맥
@@ -80,12 +80,11 @@ cp .env.example .env
 
 ```dotenv
 CLOVA_API_KEY=실제_API_KEY
-STT_API_URL=https://gateway-api.clova-studio-gov.com/v1/audio/transcriptions
-TTS_API_URL=https://gateway-api.clova-studio-gov.com/v1/audio/speech
-AGENT_BASE_URL=https://gateway-api.clova-studio-gov.com
-AGENT_V1_SLUG=n5KjTKxOQ_q5biAokqBZwA
-AGENT_V2_SLUG=w4r7BhFhTTueoOCISFRFPg
-MODEL_BASE_URL=https://gateway-api.clova-studio-gov.com/api/v1
+STT_API_URL=https://alpha-api.clovastudio-gov.com/v1/audio/transcriptions
+TTS_API_URL=https://alpha-api.clovastudio-gov.com/v1/audio/speech
+AGENT_BASE_URL=https://alpha-api.clovastudio-gov.com
+AGENT_V2_SLUG=3p-wwnDkTfO4RuC-GQp_6g
+MODEL_BASE_URL=https://alpha-api.clovastudio-gov.com/api/v1
 MODEL_NAME=google/gemma-4-31B-it
 ```
 
@@ -186,8 +185,11 @@ sudo ./deploy/update.sh
 기존 서버의 `.env` 값은 코드 기본값보다 우선합니다. 이번 기본 설정을 기존 배포에도 적용하려면 다음 값을 수정하고, `MODEL_SYSTEM_PROMPT`를 제거하거나 새 프롬프트로 교체하세요.
 
 ```dotenv
-AGENT_V1_SLUG=n5KjTKxOQ_q5biAokqBZwA
-AGENT_V2_SLUG=w4r7BhFhTTueoOCISFRFPg
+STT_API_URL=https://alpha-api.clovastudio-gov.com/v1/audio/transcriptions
+TTS_API_URL=https://alpha-api.clovastudio-gov.com/v1/audio/speech
+AGENT_BASE_URL=https://alpha-api.clovastudio-gov.com
+AGENT_V2_SLUG=3p-wwnDkTfO4RuC-GQp_6g
+MODEL_BASE_URL=https://alpha-api.clovastudio-gov.com/api/v1
 MODEL_NAME=google/gemma-4-31B-it
 ```
 

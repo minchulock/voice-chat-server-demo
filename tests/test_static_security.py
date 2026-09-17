@@ -19,11 +19,12 @@ def test_no_local_model_runtime_is_shipped():
 
 def test_browser_defaults_match_server_defaults():
     script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
-    assert "agentV1Slug:'n5KjTKxOQ_q5biAokqBZwA'" in script
-    assert "saved.agentV1Slug==='YAv53FJNQkST0qhoOs1H_g'" in script
-    assert "agentV2Slug:'w4r7BhFhTTueoOCISFRFPg'" in script
-    assert "if(saved.provider==='agent')saved.provider='agent_v1'" in script
-    assert "if(saved.agentSlug&&!saved.agentV1Slug)saved.agentV1Slug=saved.agentSlug" in script
+    assert "provider:'agent_v2'" in script
+    assert "agentV2Slug:'3p-wwnDkTfO4RuC-GQp_6g'" in script
+    assert "saved.provider==='agent_v1'" in script
+    assert "saved.agentV2Slug==='w4r7BhFhTTueoOCISFRFPg'" in script
+    assert "agent_v1_slug:" not in script
+    assert "settings.agentV1Slug" not in script
     assert "modelName:'google/gemma-4-31B-it'" in script
     assert "ttsSpeed:1.6" in script
     assert "voiceChatSettingsV2" in script
@@ -32,8 +33,12 @@ def test_browser_defaults_match_server_defaults():
 def test_answer_api_settings_have_strict_hidden_rule():
     stylesheet = (ROOT / "static" / "settings-fix.css").read_text(encoding="utf-8")
     script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
+    page = (ROOT / "static" / "voice.html").read_text(encoding="utf-8")
     assert "display: none !important" in stylesheet
     assert "classList.toggle('selected',input.checked)" in script
+    assert 'value="agent_v1"' not in page
+    assert 'id="agent-v1-row"' not in page
+    assert 'value="agent_v2"' in page
 
 
 def test_barge_in_monitor_is_ready_before_tts_playback():

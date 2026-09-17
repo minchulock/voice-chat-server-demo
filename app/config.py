@@ -57,7 +57,6 @@ class Settings:
     stt_url: str
     tts_url: str
     agent_base_url: str
-    agent_v1_slug: str
     agent_v2_slug: str
     model_base_url: str
     model_name: str
@@ -75,12 +74,11 @@ class Settings:
 def load_settings() -> Settings:
     return Settings(
         api_key=_required("CLOVA_API_KEY"),
-        stt_url=os.getenv("STT_API_URL", "https://gateway-api.clova-studio-gov.com/v1/audio/transcriptions").strip(),
-        tts_url=os.getenv("TTS_API_URL", "https://gateway-api.clova-studio-gov.com/v1/audio/speech").strip(),
-        agent_base_url=os.getenv("AGENT_BASE_URL", "https://gateway-api.clova-studio-gov.com").rstrip("/"),
-        agent_v1_slug=os.getenv("AGENT_V1_SLUG", os.getenv("AGENT_SLUG", "n5KjTKxOQ_q5biAokqBZwA")).strip(),
-        agent_v2_slug=os.getenv("AGENT_V2_SLUG", "w4r7BhFhTTueoOCISFRFPg").strip(),
-        model_base_url=os.getenv("MODEL_BASE_URL", "https://gateway-api.clova-studio-gov.com/api/v1").rstrip("/"),
+        stt_url=os.getenv("STT_API_URL", "https://alpha-api.clovastudio-gov.com/v1/audio/transcriptions").strip(),
+        tts_url=os.getenv("TTS_API_URL", "https://alpha-api.clovastudio-gov.com/v1/audio/speech").strip(),
+        agent_base_url=os.getenv("AGENT_BASE_URL", "https://alpha-api.clovastudio-gov.com").rstrip("/"),
+        agent_v2_slug=os.getenv("AGENT_V2_SLUG", "3p-wwnDkTfO4RuC-GQp_6g").strip(),
+        model_base_url=os.getenv("MODEL_BASE_URL", "https://alpha-api.clovastudio-gov.com/api/v1").rstrip("/"),
         model_name=os.getenv("MODEL_NAME", "google/gemma-4-31B-it").strip(),
         model_system_prompt=os.getenv("MODEL_SYSTEM_PROMPT", DEFAULT_SYSTEM_PROMPT).strip(),
         request_timeout_seconds=float(os.getenv("REQUEST_TIMEOUT_SECONDS", "125")),
