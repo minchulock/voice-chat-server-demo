@@ -40,5 +40,10 @@ async def test_stt_uses_bearer_and_multipart_file(monkeypatch):
     assert url.endswith("/v1/audio/transcriptions")
     assert request["headers"]["Authorization"] == "Bearer test-key"
     assert request["files"]["file"][0] == "speech.webm"
+    assert request["files"]["file"][1] == b"webm-audio"
+    assert request["files"]["file"][2] == "audio/webm"
+    assert request["data"]["model"] == "whisper-large-v3"
+    assert request["data"]["response_format"] == "json"
+    assert request["data"]["language"] == "ko"
     assert request["data"]["prompt"] == "정부24"
     assert result["transcript"] == "전사 결과"

@@ -77,7 +77,7 @@ pip install -r requirements-dev.txt
 cp .env.example .env
 ```
 
-`.env`에서 실제 API 키와 필요한 URL을 설정합니다.
+`.env`에서 실제 API 키와 필요한 URL을 설정합니다. `CLOVA_API_KEY` 하나를 STT, TTS, Agent API가 공통으로 사용합니다.
 
 ```dotenv
 CLOVA_API_KEY=실제_API_KEY
