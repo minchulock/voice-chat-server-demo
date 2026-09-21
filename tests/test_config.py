@@ -20,6 +20,7 @@ def test_voice_service_defaults(monkeypatch):
     monkeypatch.delenv("MODEL_NAME", raising=False)
     monkeypatch.delenv("MODEL_SYSTEM_PROMPT", raising=False)
     settings = load_settings()
+    assert settings.agent_v1_slug == "woLbP7utQsqiUIQtP0DMtQ"
     assert settings.agent_v2_slug == "lK5muLmzRZ2bOC9jx4JDQg"
     assert settings.agent_base_url == "https://alpha-api.clovastudio-gov.com"
     assert settings.stt_url.startswith("https://alpha-api.clovastudio-gov.com/")

@@ -40,6 +40,37 @@ class FakeClient:
         return FakeStreamContext()
 
 
+class FakeV1Response:
+    def raise_for_status(self):
+        return None
+
+    def json(self):
+        return {
+            "jsonrpc": "2.0",
+            "result": {
+                "metadata": {"chat_session_id": 731},
+                "message": {"parts": [{"kind": "text", "text": "v1 답변"}]},
+            },
+        }
+
+
+class FakeV1Client:
+    captured = None
+
+    def __init__(self, **_):
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *_):
+        return None
+
+    async def post(self, url, **kwargs):
+        FakeV1Client.captured = (url, kwargs)
+        return FakeV1Response()
+
+
 @pytest.mark.asyncio
 async def test_agent_v2_stream_reuses_history_and_extracts_final_artifact(monkeypatch):
     monkeypatch.setenv("CLOVA_API_KEY", "test-key")
@@ -61,3 +92,31 @@ async def test_agent_v2_stream_reuses_history_and_extracts_final_artifact(monkey
     assert "kind" not in message["parts"][0]
     assert answer == "법령 답변"
     assert context_id == "ctx-1"
+
+
+@pytest.mark.asyncio
+async def test_agent_v1_uses_message_send_and_reuses_chat_session(monkeypatch):
+    monkeypatch.setenv("CLOVA_API_KEY", "test-key")
+    monkeypatch.setattr(chat.httpx, "AsyncClient", FakeV1Client)
+    session = SessionStore().create()
+    session.agent_v1_chat_session_id = 730
+    answer, chat_session_id = await chat.call_agent_v1(load_settings(), session, "질문", "v1-slug", True)
+    url, options = FakeV1Client.captured
+    message = options["json"]["params"]["message"]
+    assert url.endswith("/api/v1/external/agents/v1-slug/a2a")
+    assert options["json"]["method"] == "message/send"
+    assert message["kind"] == "message"
+    assert message["parts"][0] == {"kind": "text", "text": "질문"}
+    assert options["json"]["params"]["metadata"]["chat_session_id"] == 730
+    assert answer == "v1 답변"
+    assert chat_session_id == 731
+
+
+@pytest.mark.asyncio
+async def test_agent_v1_first_turn_omits_chat_session_metadata(monkeypatch):
+    monkeypatch.setenv("CLOVA_API_KEY", "test-key")
+    monkeypatch.setattr(chat.httpx, "AsyncClient", FakeV1Client)
+    session = SessionStore().create()
+    await chat.call_agent_v1(load_settings(), session, "첫 질문", "v1-slug", True)
+    _, options = FakeV1Client.captured
+    assert "metadata" not in options["json"]["params"]

@@ -1,6 +1,6 @@
 # VOICE24 AI — Server–Client Voice Chat Demo
 
-CLOVA Studio GOV의 STT API, Agent v2 API 또는 Model API, Streaming TTS API를 연결한 브라우저 음성 챗봇 데모입니다.
+CLOVA Studio GOV의 STT API, Agent v1/v2 API 또는 Model API, Streaming TTS API를 연결한 브라우저 음성 챗봇 데모입니다.
 
 이 저장소에는 로컬 AI 모델, 모델 가중치, MLX, Ollama, Whisper 서버, 로컬 TTS 서버가 포함되지 않습니다. 브라우저는 마이크·VAD·오디오 재생을 담당하고 API 키가 필요한 모든 요청은 FastAPI 서버가 처리합니다.
 
@@ -27,7 +27,7 @@ Browser ← sentence prefetch audio/SSE ← Speaker
 - 하나의 버튼에서 짧은 클릭 연속대화와 길게 누르기 Push-to-Talk 자동 구분
 - WAV 파일을 디스크에 저장하지 않는 메모리 오디오 전송
 - CLOVA STT API 동기 전사
-- Agent v2 API(A2A 1.0), Model API 선택
+- Agent v1 API(A2A, 기본 선택), Agent v2 API(A2A 1.0), Model API 선택
 - 구조화 응답의 `display_text`는 화면에, `speech_text`는 TTS에 분리 전달
 - Agent 응답 대기 애니메이션
 - Session 기반 멀티턴 문맥
@@ -84,6 +84,7 @@ CLOVA_API_KEY=실제_API_KEY
 STT_API_URL=https://alpha-api.clovastudio-gov.com/v1/audio/transcriptions
 TTS_API_URL=https://alpha-api.clovastudio-gov.com/v1/audio/speech
 AGENT_BASE_URL=https://alpha-api.clovastudio-gov.com
+AGENT_V1_SLUG=woLbP7utQsqiUIQtP0DMtQ
 AGENT_V2_SLUG=lK5muLmzRZ2bOC9jx4JDQg
 MODEL_BASE_URL=https://alpha-api.clovastudio-gov.com/api/v1
 MODEL_NAME=google/gemma-4-31B-it
@@ -189,6 +190,7 @@ sudo ./deploy/update.sh
 STT_API_URL=https://alpha-api.clovastudio-gov.com/v1/audio/transcriptions
 TTS_API_URL=https://alpha-api.clovastudio-gov.com/v1/audio/speech
 AGENT_BASE_URL=https://alpha-api.clovastudio-gov.com
+AGENT_V1_SLUG=woLbP7utQsqiUIQtP0DMtQ
 AGENT_V2_SLUG=lK5muLmzRZ2bOC9jx4JDQg
 MODEL_BASE_URL=https://alpha-api.clovastudio-gov.com/api/v1
 MODEL_NAME=google/gemma-4-31B-it

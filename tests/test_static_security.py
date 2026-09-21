@@ -19,12 +19,14 @@ def test_no_local_model_runtime_is_shipped():
 
 def test_browser_defaults_match_server_defaults():
     script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
-    assert "provider:'agent_v2'" in script
+    assert "provider:'agent_v1'" in script
+    assert "settingsRevision:3" in script
+    assert "saved.settingsRevision!==DEFAULTS.settingsRevision" in script
+    assert "agentV1Slug:'woLbP7utQsqiUIQtP0DMtQ'" in script
     assert "agentV2Slug:'lK5muLmzRZ2bOC9jx4JDQg'" in script
-    assert "saved.provider==='agent_v1'" in script
+    assert "saved.provider==='agent'" in script
     assert "'w4r7BhFhTTueoOCISFRFPg','3p-wwnDkTfO4RuC-GQp_6g'" in script
-    assert "agent_v1_slug:" not in script
-    assert "settings.agentV1Slug" not in script
+    assert "agent_v1_slug:settings.agentV1Slug" in script
     assert "modelName:'google/gemma-4-31B-it'" in script
     assert "ttsSpeed:1.6" in script
     assert "voiceChatSettingsV2" in script
@@ -36,8 +38,8 @@ def test_answer_api_settings_have_strict_hidden_rule():
     page = (ROOT / "static" / "voice.html").read_text(encoding="utf-8")
     assert "display: none !important" in stylesheet
     assert "classList.toggle('selected',input.checked)" in script
-    assert 'value="agent_v1"' not in page
-    assert 'id="agent-v1-row"' not in page
+    assert 'value="agent_v1"' in page
+    assert 'id="agent-v1-row"' in page
     assert 'value="agent_v2"' in page
 
 
