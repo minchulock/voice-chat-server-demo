@@ -144,10 +144,17 @@ def test_single_button_supports_continuous_mode_and_push_to_talk():
     assert "startListening(null,false,true)" in script
     assert 'id="input-mode"' in page
     assert 'value="hybrid">클릭: 연속대화 · 길게 누름: PTT' in page
-    assert 'data-guide-mode="ptt"' in page
-    assert '버튼을 길게 누르면 Push-to-Talk' in page
-    assert '버튼을 한 번 클릭하면 연속대화' in page
-    assert '최초 권한 허용 후 버튼을 다시 클릭하면 시작' in page
-    assert '<code>keydown</code>' in page
-    assert '<code>keyup</code>' in page
+    assert 'class="input-guide"' not in page
+    assert '클릭: 연속대화 · 길게 누르기: PTT · 종료: 세션 종료' in page
+    assert '종료하려면 아래 세션 종료를 누르세요' in page
     assert "syncInputGuides()" in script
+
+
+def test_question_guide_is_inside_empty_conversation_and_removed_on_first_message():
+    script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
+    page = (ROOT / "static" / "voice.html").read_text(encoding="utf-8")
+    conversation = page.split('id="conversation"', 1)[1].split('id="caption"', 1)[0]
+    assert 'id="question-guide"' in conversation
+    assert "function questionGuide()" in script
+    assert "conversation.querySelector('.empty')?.remove()" in script
+    assert "syncQuestionGuide()" in script

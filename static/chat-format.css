@@ -37,62 +37,18 @@
   user-select: none;
 }
 
-[data-guide-mode][hidden] {
-  display: none !important;
+.conversation .empty { width: 100%; }
+
+.conversation .question-guide {
+  width: min(920px, 100%);
+  margin-top: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
 }
 
-.input-guide {
-  padding: 17px 24px;
-  border-top: 1px solid #dce6f2;
-  background: #f7faff;
-}
-
-.input-guide header {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-}
-
-.input-guide header small {
-  color: #168e76;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .12em;
-}
-
-.input-guide header strong { font-size: 14px; }
-.input-guide header em { margin-left: auto; padding: 4px 9px; border-radius: 12px; color: #2878f3; background: #eaf3ff; font-size: 10px; font-style: normal; font-weight: 700; }
-
-.input-guide-steps {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 9px;
-  margin-top: 12px;
-}
-
-.input-guide-steps p,
-.auto-guide {
-  display: grid;
-  grid-template-columns: 28px 1fr;
-  gap: 5px 9px;
-  margin: 0;
-  padding: 12px;
-  border: 1px solid #dce6f2;
-  border-radius: 13px;
-  background: #fff;
-}
-
-.input-guide-steps p > i,
-.auto-guide > i { grid-row: 1 / 4; color: #2878f3; font: 700 10px/1.5 ui-monospace, monospace; }
-.input-guide-steps p > b { color: #34455d; font-size: 12px; }
-.input-guide-steps p > span { color: #607188; font-size: 11px; line-height: 1.45; }
-.input-guide-steps p > small { display: flex; align-items: center; gap: 5px; }
-.input-guide-steps code { padding: 2px 5px; border-radius: 5px; color: #71839a; background: #f2f6fb; font: 9px ui-monospace, monospace; }
-.input-guide-steps mark { color: #9bacc0; background: none; font-size: 9px; }
-.input-guide-note { margin: 10px 0 0; color: #64758b; font-size: 11px; }
-.auto-guide { margin-top: 12px; align-items: center; }
-.auto-guide span { display: flex; flex-direction: column; gap: 3px; }
-.auto-guide small { color: #7d8da3; }
+.conversation .question-guide header { justify-content: center; }
 
 .voice-ptt-guide {
   display: flex;
@@ -117,6 +73,4 @@
 @media (max-width: 800px) {
   .bubble.assistant.has-speech { padding-right: 16px; padding-top: 48px; }
   .full-speech-button { top: 10px; left: 12px; right: auto; }
-  .input-guide-steps { grid-template-columns: 1fr; }
-  .input-guide header { align-items: flex-start; flex-direction: column; gap: 4px; }
 }

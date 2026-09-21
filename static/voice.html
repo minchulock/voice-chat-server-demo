@@ -33,22 +33,9 @@
       <section class="session-bar"><div><small>SESSION</small><code id="session-id">생성 중…</code><b id="turn-count">TURN 0</b></div><button id="end-session" type="button" disabled>세션 종료</button></section>
 
       <section class="chat-card">
-        <div id="conversation" class="conversation"><div class="empty"><strong>대화를 시작해보세요</strong><span>마이크 버튼을 누르고 자연스럽게 말해 주세요.</span></div></div>
+        <div id="conversation" class="conversation"><div class="empty"><strong>대화를 시작해보세요</strong><span>마이크 버튼을 누르고 자연스럽게 말해 주세요.</span><section id="question-guide" class="question-guide"><header><small>QUESTION GUIDE</small><strong>이렇게 질문해 보세요</strong></header><div><p><i>01</i> 유아학비 지원 내용이 뭔가요?</p><p><i>02</i> 퇴사 후 건강보험은 어떻게 변경해야 하나요?</p><p><i>03</i> 여권을 분실했는데 재발급은 어떻게 하고 얼마나 걸리나요?</p></div></section></div></div>
         <div id="caption" class="caption">서버 상태 확인 중…</div>
-        <section id="question-guide" class="question-guide">
-          <header><small>QUESTION GUIDE</small><strong>이렇게 질문해 보세요</strong></header>
-          <div><p><i>01</i> 유아학비 지원 내용이 뭔가요?</p><p><i>02</i> 퇴사 후 건강보험은 어떻게 변경해야 하나요?</p><p><i>03</i> 여권을 분실했는데 재발급은 어떻게 하고 얼마나 걸리나요?</p></div>
-        </section>
-        <section class="input-guide" data-guide-mode="ptt" aria-label="Push-to-Talk 사용법">
-          <header><small>VOICE GUIDE</small><strong>버튼을 길게 누르면 Push-to-Talk</strong><em>누르는 동안만</em></header>
-          <div class="input-guide-steps"><p><i>01</i><b>마우스</b><span>버튼을 길게 누르고 말한 뒤 놓기</span><small><code>hold</code><mark>→</mark><code>pointerup</code></small></p><p><i>02</i><b>터치</b><span>버튼을 길게 누르고 말한 뒤 손가락 떼기</span><small><code>hold</code><mark>→</mark><code>pointerup · cancel</code></small></p><p><i>03</i><b>키보드</b><span>Space를 누르고 말한 뒤 키 떼기</span><small><code>keydown</code><mark>→</mark><code>keyup</code></small></p></div>
-          <p class="input-guide-note">최초 한 번은 마이크 권한을 허용한 뒤, 다시 누르고 말씀해 주세요.</p>
-        </section>
-        <section class="input-guide" data-guide-mode="auto" aria-label="연속대화 사용법">
-          <header><small>VOICE GUIDE</small><strong>버튼을 한 번 클릭하면 연속대화</strong><em>Hands-free</em></header>
-          <div class="auto-guide"><i>01</i><span><b>말이 끝나면 자동으로 전송합니다</b><small>최초 권한 허용 후 버튼을 다시 클릭하면 시작되며, 세션 종료 전까지 다음 Turn을 계속 듣습니다.</small></span></div>
-        </section>
-        <div class="voice-control"><canvas id="meter" width="320" height="60"></canvas><button id="mic" type="button" disabled aria-label="한 번 클릭하여 연속대화, 길게 눌러 Push-to-Talk"><span></span></button><div><strong id="control-title">준비 중</strong><small id="control-hint">잠시 기다려 주세요</small></div></div>
+        <div class="voice-control"><canvas id="meter" width="320" height="60"></canvas><button id="mic" type="button" disabled aria-label="한 번 클릭하여 연속대화, 길게 눌러 Push-to-Talk"><span></span></button><div><strong id="control-title">준비 중</strong><small id="control-hint">클릭: 연속대화 · 길게 누르기: PTT · 종료: 세션 종료</small></div></div>
       </section>
       <p id="error" class="error" role="alert"></p>
 
@@ -68,7 +55,7 @@
     </section>
   </div>
 
-  <div id="voice-mode" class="voice-mode" hidden><header><b>VOICE CONVERSATION</b><button id="close-voice-mode" type="button">챗봇 모드</button></header><main><div id="orb" class="orb"><i></i><i></i><span></span></div><small id="voice-state">READY</small><h2 id="voice-title">대화를 시작할 준비가 됐어요</h2><p id="voice-copy">최초 권한 허용 후 버튼을 다시 눌러 시작하세요.</p><div class="voice-ptt-guide" data-guide-mode="auto"><span><b>한 번 클릭</b> 연속대화 시작</span><small>권한 허용 직후에는 시작하지 않으며, 다시 클릭하면 다음 Turn을 자동으로 듣습니다</small></div><div class="voice-ptt-guide" data-guide-mode="ptt"><span><b>길게 누르기</b> Push-to-Talk</span><span><b>키보드</b> Space를 누르고 말하기</span><small>버튼이나 키를 놓으면 발화를 종료합니다</small></div><button id="voice-mic" type="button">클릭 또는 길게 누르기</button></main><footer><span id="voice-session">SESSION —</span><b id="voice-turn">TURN 0</b><button id="voice-end" type="button" disabled>세션 종료</button></footer></div>
+  <div id="voice-mode" class="voice-mode" hidden><header><b>VOICE CONVERSATION</b><button id="close-voice-mode" type="button">챗봇 모드</button></header><main><div id="orb" class="orb"><i></i><i></i><span></span></div><small id="voice-state">READY</small><h2 id="voice-title">대화를 시작할 준비가 됐어요</h2><p id="voice-copy">클릭하면 연속대화, 길게 누르면 PTT · 종료하려면 아래 세션 종료를 누르세요.</p><button id="voice-mic" type="button">클릭 또는 길게 누르기</button></main><footer><span id="voice-session">SESSION —</span><b id="voice-turn">TURN 0</b><button id="voice-end" type="button" disabled>세션 종료</button></footer></div>
   <audio id="audio" preload="auto"></audio>
   <script src="/static/voice.js"></script>
 </body>
