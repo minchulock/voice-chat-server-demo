@@ -133,6 +133,10 @@ def test_single_button_supports_continuous_mode_and_push_to_talk():
     assert "finishOnSilence&&heardVoice" in script
     assert "monitorVad(performance.now(),true)" in script
     assert "prepareMicrophonePermission" in script
+    mic_action = script.split("async function micAction", 1)[1].split("async function beginPtt", 1)[0]
+    assert mic_action.index("await prepareMicrophonePermission()") < mic_action.index("await startListening(null,false,true)")
+    assert "activeInputMode='idle'" in mic_action
+    assert "버튼을 다시 클릭하면 연속대화가 시작됩니다" in mic_action
     assert "navigator.permissions" not in script
     assert "permissionStream.getTracks().forEach" in script
     assert "return false" in script
@@ -143,6 +147,7 @@ def test_single_button_supports_continuous_mode_and_push_to_talk():
     assert 'data-guide-mode="ptt"' in page
     assert '버튼을 길게 누르면 Push-to-Talk' in page
     assert '버튼을 한 번 클릭하면 연속대화' in page
+    assert '최초 권한 허용 후 버튼을 다시 클릭하면 시작' in page
     assert '<code>keydown</code>' in page
     assert '<code>keyup</code>' in page
     assert "syncInputGuides()" in script
