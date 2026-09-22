@@ -50,33 +50,56 @@
 
 .conversation .question-guide header { justify-content: center; }
 
-.session-actions {
+.voice-dock {
   display: grid;
-  grid-template-columns: 1fr auto auto;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: stretch;
   gap: 10px;
-  margin: 14px 0;
-  padding: 14px 16px;
-  border: 1px solid #dce6f2;
-  border-radius: 15px;
-  background: #fff;
-  box-shadow: 0 10px 30px #3965a50d;
+  padding: 16px;
+  border-top: 3px solid #27c8a4;
+  background: linear-gradient(180deg, #f9fffd 0%, #fff 100%);
 }
 
-.session-actions > div { display: flex; flex-direction: column; gap: 4px; }
-.session-actions strong { color: #34455d; font-size: 13px; }
-.session-actions small { color: #7d8da3; font-size: 11px; }
-.session-actions button {
-  min-width: 112px;
-  padding: 11px 16px;
+.voice-action {
+  position: relative;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 76px;
+  padding: 12px 16px;
   border: 1px solid #cfdced;
-  border-radius: 11px;
-  color: #52647b;
+  border-radius: 18px;
+  color: #34455d;
   background: #fff;
-  font-weight: 700;
+  text-align: left;
+  box-shadow: 0 8px 24px #366aa00d;
+  transition: border-color .18s, box-shadow .18s, transform .18s;
 }
-.session-actions #continuous-mode { color: #fff; border-color: #20bea0; background: #20bea0; }
-.session-actions button:disabled { cursor: default; opacity: .45; }
+.voice-action:hover:not(:disabled) { border-color: #85b5f8; box-shadow: 0 10px 28px #2878f31a; transform: translateY(-1px); }
+.voice-action > i { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; color: #fff; background: #2878f3; font-size: 24px; font-style: normal; font-weight: 800; }
+.voice-action > span { position: relative; z-index: 1; display: flex; min-width: 0; flex-direction: column; gap: 5px; }
+.voice-action strong { font-size: 15px; line-height: 1.2; }
+.voice-action small { color: #7d8da3; font-size: 11px; line-height: 1.35; }
+.voice-action:disabled { cursor: default; opacity: .5; }
+#mic #meter { position: absolute; right: 8px; bottom: 7px; width: 132px; height: 36px; opacity: .35; pointer-events: none; }
+.ptt-action > i > span { width: 14px; height: 20px; border: 2px solid #fff; border-radius: 8px; }
+.ptt-action.recording { border-color: #ff7e87; box-shadow: 0 0 0 4px #ff7e871a; }
+.ptt-action.recording > i { background: #ef5964; }
+.continuous-action > i { background: #22bea0; }
+.continuous-action.active { color: #fff; border-color: #1eb394; background: linear-gradient(135deg, #24c5a5, #16a98d); box-shadow: 0 12px 30px #20bea033; }
+.continuous-action.active > i { color: #19aa8e; background: #fff; }
+.continuous-action.active small { color: #e7fffa; }
+.dock-end { align-self: center; padding: 10px 13px; border: 1px solid #d7e1ed; border-radius: 11px; color: #6d7e93; background: #f7f9fc; font-size: 11px; font-weight: 700; }
+.dock-end:disabled { opacity: .4; }
+
+.voice-mode-dock { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: min(520px, calc(100vw - 36px)); }
+.voice-mode-dock button { display: flex; min-height: 64px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 1px solid #ffffff3b; border-radius: 18px; color: #eef8ff; background: #ffffff12; }
+.voice-mode-dock button:first-child { border-color: #6daafa; background: #2878f32b; }
+.voice-mode-dock button:last-child { border-color: #58d9c0; background: #20bea026; }
+.voice-mode-dock button.active { color: #082b34; border-color: #70e6ce; background: #70e6ce; }
+.voice-mode-dock button b { font-size: 14px; }
+.voice-mode-dock button small { color: inherit; opacity: .72; font-size: 10px; }
 .voice-mode > footer > div { display: flex; gap: 8px; }
 
 .voice-ptt-guide {
@@ -102,7 +125,8 @@
 @media (max-width: 800px) {
   .bubble.assistant.has-speech { padding-right: 16px; padding-top: 48px; }
   .full-speech-button { top: 10px; left: 12px; right: auto; }
-  .session-actions { grid-template-columns: 1fr 1fr; }
-  .session-actions > div { grid-column: 1 / -1; }
-  .session-actions button { min-width: 0; }
+  .voice-dock { grid-template-columns: 1fr; }
+  .voice-action { min-height: 68px; }
+  .dock-end { justify-self: stretch; }
+  .voice-mode-dock { grid-template-columns: 1fr; }
 }

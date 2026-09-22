@@ -147,10 +147,29 @@ def test_push_to_talk_and_continuous_mode_use_separate_controls():
     assert 'id="continuous-mode"' in page
     assert 'id="end-session"' in page
     assert "$('#continuous-mode').addEventListener('click'" in script
-    assert "control.addEventListener('pointerdown',event=>beginPtt(event)" in script
+    assert "control.addEventListener('pointerdown',event=>handlePttDown(event)" in script
     assert 'class="input-guide"' not in page
-    assert page.index('id="mic"') < page.index('class="session-actions"') < page.index('class="logs"')
+    assert page.index('class="voice-dock"') < page.index('class="logs"')
+    dock = page.split('class="voice-dock"', 1)[1].split('</div>', 1)[0]
+    assert dock.index('id="mic"') < dock.index('id="continuous-mode"') < dock.index('id="end-session"')
     assert "syncInputGuides()" in script
+
+
+def test_ptt_cancels_auto_mode_and_only_auto_mode_uses_voice_barge_in():
+    script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
+    stylesheet = (ROOT / "static" / "chat-format.css").read_text(encoding="utf-8")
+    select_ptt = script.split("function selectPttMode", 1)[1].split("async function handlePttDown", 1)[0]
+    ptt_down = script.split("async function handlePttDown", 1)[1].split("async function beginPtt", 1)[0]
+    play_blob = script.split("async function playBlob", 1)[1].split("async function speak", 1)[0]
+    assert select_ptt.index("activeInputMode='ptt'") < select_ptt.index("clearTimeout(nextTurnTimer)")
+    assert "nextTurnTimer=0" in select_ptt
+    assert ptt_down.index("selectPttMode()") < ptt_down.index("if(ttsPlaying)") < ptt_down.index("if(busy||transitioning)")
+    assert "stopPlayback()" in ptt_down
+    assert "손을 뗀 뒤 다시 누르고 말씀하세요" in ptt_down
+    assert "activeInputMode!=='auto'" in play_blob
+    assert "if(!settings.bargeIn||activeInputMode!=='auto')" in play_blob
+    assert ".voice-dock" in stylesheet
+    assert ".voice-mode-dock" in stylesheet
 
 
 def test_question_guide_is_inside_empty_conversation_and_removed_on_first_message():
