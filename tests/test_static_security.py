@@ -152,6 +152,10 @@ def test_push_to_talk_and_continuous_mode_use_separate_controls():
     assert page.index('class="voice-dock"') < page.index('class="logs"')
     dock = page.split('class="voice-dock"', 1)[1].split('</div>', 1)[0]
     assert dock.index('id="mic"') < dock.index('id="continuous-mode"') < dock.index('id="end-session"')
+    assert dock.count('class="action-icon"') == 2
+    assert '<svg viewBox="0 0 24 24"' in dock
+    assert 'class="voice-mode-dock"' in page
+    assert page.count('class="mode-icon"') == 2
     assert "syncInputGuides()" in script
 
 

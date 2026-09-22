@@ -77,13 +77,17 @@
   transition: border-color .18s, box-shadow .18s, transform .18s;
 }
 .voice-action:hover:not(:disabled) { border-color: #85b5f8; box-shadow: 0 10px 28px #2878f31a; transform: translateY(-1px); }
-.voice-action > i { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; color: #fff; background: #2878f3; font-size: 24px; font-style: normal; font-weight: 800; }
+.voice-action > i { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; color: #fff; background: #2878f3; font-style: normal; }
+.action-icon svg { width: 25px; height: 25px; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.action-icon svg rect { fill: currentColor; fill-opacity: .16; }
+.continuous-action .action-icon svg { width: 27px; height: 27px; }
+.continuous-action .action-icon .orbit { opacity: .62; stroke-width: 1.35; }
+.continuous-action .action-icon .arrow { opacity: .85; stroke-width: 1.45; }
 .voice-action > span { position: relative; z-index: 1; display: flex; min-width: 0; flex-direction: column; gap: 5px; }
 .voice-action strong { font-size: 15px; line-height: 1.2; }
 .voice-action small { color: #7d8da3; font-size: 11px; line-height: 1.35; }
 .voice-action:disabled { cursor: default; opacity: .5; }
 #mic #meter { position: absolute; right: 8px; bottom: 7px; width: 132px; height: 36px; opacity: .35; pointer-events: none; }
-.ptt-action > i > span { width: 14px; height: 20px; border: 2px solid #fff; border-radius: 8px; }
 .ptt-action.recording { border-color: #ff7e87; box-shadow: 0 0 0 4px #ff7e871a; }
 .ptt-action.recording > i { background: #ef5964; }
 .continuous-action > i { background: #22bea0; }
@@ -94,10 +98,13 @@
 .dock-end:disabled { opacity: .4; }
 
 .voice-mode-dock { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: min(520px, calc(100vw - 36px)); }
-.voice-mode-dock button { display: flex; min-height: 64px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 1px solid #ffffff3b; border-radius: 18px; color: #eef8ff; background: #ffffff12; }
+.voice-mode-dock button { display: grid; grid-template-columns: 38px auto; min-height: 68px; align-items: center; justify-content: center; gap: 10px; border: 1px solid #ffffff3b; border-radius: 18px; color: #eef8ff; background: #ffffff12; text-align: left; }
 .voice-mode-dock button:first-child { border-color: #6daafa; background: #2878f32b; }
 .voice-mode-dock button:last-child { border-color: #58d9c0; background: #20bea026; }
 .voice-mode-dock button.active { color: #082b34; border-color: #70e6ce; background: #70e6ce; }
+.voice-mode-dock button > span { display: flex; flex-direction: column; gap: 4px; }
+.mode-icon { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid currentColor; border-radius: 50%; font-style: normal; opacity: .9; }
+.mode-icon svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .voice-mode-dock button b { font-size: 14px; }
 .voice-mode-dock button small { color: inherit; opacity: .72; font-size: 10px; }
 .voice-mode > footer > div { display: flex; gap: 8px; }
