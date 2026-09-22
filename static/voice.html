@@ -30,13 +30,14 @@
         <div data-stage="tts"><i>04</i><b>TTS API</b><span>대기</span></div>
       </section>
 
-      <section class="session-bar"><div><small>SESSION</small><code id="session-id">생성 중…</code><b id="turn-count">TURN 0</b></div><button id="end-session" type="button" disabled>세션 종료</button></section>
+      <section class="session-bar"><div><small>SESSION</small><code id="session-id">생성 중…</code><b id="turn-count">TURN 0</b></div></section>
 
       <section class="chat-card">
         <div id="conversation" class="conversation"><div class="empty"><strong>대화를 시작해보세요</strong><span>마이크 버튼을 누르고 자연스럽게 말해 주세요.</span><section id="question-guide" class="question-guide"><header><small>QUESTION GUIDE</small><strong>이렇게 질문해 보세요</strong></header><div><p><i>01</i> 유아학비 지원 내용이 뭔가요?</p><p><i>02</i> 퇴사 후 건강보험은 어떻게 변경해야 하나요?</p><p><i>03</i> 여권을 분실했는데 재발급은 어떻게 하고 얼마나 걸리나요?</p></div></section></div></div>
         <div id="caption" class="caption">서버 상태 확인 중…</div>
-        <div class="voice-control"><canvas id="meter" width="320" height="60"></canvas><button id="mic" type="button" disabled aria-label="한 번 클릭하여 연속대화, 길게 눌러 Push-to-Talk"><span></span></button><div><strong id="control-title">준비 중</strong><small id="control-hint">클릭: 연속대화 · 길게 누르기: PTT · 종료: 세션 종료</small></div></div>
+        <div class="voice-control"><canvas id="meter" width="320" height="60"></canvas><button id="mic" type="button" disabled aria-label="누르고 있는 동안 음성 입력"><span></span></button><div><strong id="control-title">Push-to-Talk 준비 중</strong><small id="control-hint">버튼이나 Space 키를 누른 상태로 말씀해 주세요.</small></div></div>
       </section>
+      <section class="session-actions" aria-label="대화 모드 제어"><div><strong>대화 방식</strong><small>기본은 Push-to-Talk이며, 핸즈프리가 필요하면 연속 대화를 시작하세요.</small></div><button id="continuous-mode" type="button">연속 대화</button><button id="end-session" type="button" disabled>세션 종료</button></section>
       <p id="error" class="error" role="alert"></p>
 
       <section class="logs"><header><b>LIVE API &amp; STREAM LOG</b><button id="clear-log" type="button">CLEAR</button></header><div id="log"><p>API 호출을 기다리고 있습니다.</p></div></section>
@@ -47,7 +48,7 @@
     <button class="backdrop" data-close-settings aria-label="설정 닫기"></button>
     <section class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
       <header><div><small>SERVER–CLIENT PIPELINE</small><h2 id="settings-title">음성 대화 설정</h2></div><button data-close-settings type="button" aria-label="설정 닫기">×</button></header>
-      <fieldset><legend><i>01</i><span><b>INPUT &amp; VAD</b><small>버튼 제스처 자동 판별</small></span></legend><label>입력 방식<select id="input-mode"><option value="hybrid">클릭: 연속대화 · 길게 누름: PTT</option></select></label><label>감지 민감도 <output id="vad-value"></output><input id="vad-threshold" type="range" min="0.008" max="0.05" step="0.001"></label><label>발화 종료 침묵<select id="silence-ms"><option value="700">0.7초</option><option value="1100">1.1초</option><option value="1600">1.6초</option></select></label><p>짧게 클릭하면 자동 VAD 연속대화가 시작됩니다. 길게 누르거나 Space 키를 누르면 누르는 동안만 녹음하는 Push-to-Talk으로 동작합니다.</p></fieldset>
+      <fieldset><legend><i>01</i><span><b>INPUT &amp; VAD</b><small>PTT와 연속대화 버튼 분리</small></span></legend><label>입력 방식<select id="input-mode"><option value="separate">분리형 · 기본 PTT</option></select></label><label>감지 민감도 <output id="vad-value"></output><input id="vad-threshold" type="range" min="0.008" max="0.05" step="0.001"></label><label>발화 종료 침묵<select id="silence-ms"><option value="700">0.7초</option><option value="1100">1.1초</option><option value="1600">1.6초</option></select></label><p>원형 마이크 버튼과 Space 키는 Push-to-Talk입니다. 별도의 연속 대화 버튼은 침묵을 감지해 다음 Turn까지 자동으로 이어갑니다.</p></fieldset>
       <fieldset><legend><i>02</i><span><b>STT API</b><small>동기 오디오 업로드</small></span></legend><label>Model<input id="stt-model" type="text"></label><label>Language<select id="stt-language"><option value="auto">자동</option><option value="ko">한국어</option><option value="en">영어</option></select></label><label>Prompt<textarea id="stt-prompt" maxlength="1000" rows="3"></textarea></label><p>STT API는 스트리밍 전사를 지원하지 않습니다. VAD 종료 직후 메모리 오디오를 전송합니다.</p></fieldset>
       <fieldset><legend><i>03</i><span><b>ANSWER API</b><small>Agent v1, v2 또는 Model</small></span></legend><div class="segments"><label><input type="radio" name="provider" value="agent_v1"><span>Agent v1 API</span></label><label><input type="radio" name="provider" value="agent_v2"><span>Agent v2 API</span></label><label><input type="radio" name="provider" value="model"><span>Model API</span></label></div><label id="agent-v1-row">Agent v1 SLUG<input id="agent-v1-slug" type="text"></label><label id="agent-v2-row">Agent v2 SLUG<input id="agent-v2-slug" type="text"></label><label id="model-row">Model name<input id="model-name" type="text"></label><label id="system-row">System prompt<textarea id="system-prompt" maxlength="8000" rows="4"></textarea></label><label class="check"><input id="use-context" type="checkbox"> 이전 Turn 문맥 유지</label></fieldset>
       <fieldset><legend><i>04</i><span><b>TTS API</b><small>스트리밍 음성 합성</small></span></legend><label>Model<input id="tts-model" type="text"></label><label>Stream format<select id="stream-format"><option value="sse">SSE 이벤트 스트림</option><option value="audio">Audio 스트림</option></select></label><label>재생 속도 <output id="speed-value"></output><input id="tts-speed" type="range" min="0.5" max="2" step="0.1"></label><label class="check"><input id="barge-in" type="checkbox"> TTS 발화 인터럽트</label></fieldset>
@@ -55,7 +56,7 @@
     </section>
   </div>
 
-  <div id="voice-mode" class="voice-mode" hidden><header><b>VOICE CONVERSATION</b><button id="close-voice-mode" type="button">챗봇 모드</button></header><main><div id="orb" class="orb"><i></i><i></i><span></span></div><small id="voice-state">READY</small><h2 id="voice-title">대화를 시작할 준비가 됐어요</h2><p id="voice-copy">클릭하면 연속대화, 길게 누르면 PTT · 종료하려면 아래 세션 종료를 누르세요.</p><button id="voice-mic" type="button">클릭 또는 길게 누르기</button></main><footer><span id="voice-session">SESSION —</span><b id="voice-turn">TURN 0</b><button id="voice-end" type="button" disabled>세션 종료</button></footer></div>
+  <div id="voice-mode" class="voice-mode" hidden><header><b>VOICE CONVERSATION</b><button id="close-voice-mode" type="button">챗봇 모드</button></header><main><div id="orb" class="orb"><i></i><i></i><span></span></div><small id="voice-state">READY</small><h2 id="voice-title">대화를 시작할 준비가 됐어요</h2><p id="voice-copy">원형 버튼은 누르는 동안만 녹음합니다.</p><button id="voice-mic" type="button">누르고 말하기</button></main><footer><span id="voice-session">SESSION —</span><b id="voice-turn">TURN 0</b><div><button id="voice-continuous" type="button">연속 대화</button><button id="voice-end" type="button" disabled>세션 종료</button></div></footer></div>
   <audio id="audio" preload="auto"></audio>
   <script src="/static/voice.js"></script>
 </body>

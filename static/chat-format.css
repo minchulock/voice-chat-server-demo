@@ -50,6 +50,35 @@
 
 .conversation .question-guide header { justify-content: center; }
 
+.session-actions {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0;
+  padding: 14px 16px;
+  border: 1px solid #dce6f2;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 10px 30px #3965a50d;
+}
+
+.session-actions > div { display: flex; flex-direction: column; gap: 4px; }
+.session-actions strong { color: #34455d; font-size: 13px; }
+.session-actions small { color: #7d8da3; font-size: 11px; }
+.session-actions button {
+  min-width: 112px;
+  padding: 11px 16px;
+  border: 1px solid #cfdced;
+  border-radius: 11px;
+  color: #52647b;
+  background: #fff;
+  font-weight: 700;
+}
+.session-actions #continuous-mode { color: #fff; border-color: #20bea0; background: #20bea0; }
+.session-actions button:disabled { cursor: default; opacity: .45; }
+.voice-mode > footer > div { display: flex; gap: 8px; }
+
 .voice-ptt-guide {
   display: flex;
   flex-wrap: wrap;
@@ -73,4 +102,7 @@
 @media (max-width: 800px) {
   .bubble.assistant.has-speech { padding-right: 16px; padding-top: 48px; }
   .full-speech-button { top: 10px; left: 12px; right: auto; }
+  .session-actions { grid-template-columns: 1fr 1fr; }
+  .session-actions > div { grid-column: 1 / -1; }
+  .session-actions button { min-width: 0; }
 }

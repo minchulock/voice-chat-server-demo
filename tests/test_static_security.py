@@ -20,7 +20,7 @@ def test_no_local_model_runtime_is_shipped():
 def test_browser_defaults_match_server_defaults():
     script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
     assert "provider:'agent_v1'" in script
-    assert "settingsRevision:3" in script
+    assert "settingsRevision:4" in script
     assert "saved.settingsRevision!==DEFAULTS.settingsRevision" in script
     assert "agentV1Slug:'woLbP7utQsqiUIQtP0DMtQ'" in script
     assert "agentV2Slug:'lK5muLmzRZ2bOC9jx4JDQg'" in script
@@ -113,14 +113,14 @@ def test_full_answer_can_be_played_on_demand():
     assert ".full-speech-button" in stylesheet
 
 
-def test_single_button_supports_continuous_mode_and_push_to_talk():
+def test_push_to_talk_and_continuous_mode_use_separate_controls():
     script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
     page = (ROOT / "static" / "voice.html").read_text(encoding="utf-8")
-    assert "inputMode:'hybrid'" in script
-    assert "const PTT_HOLD_MS=320" in script
-    assert "function beginHybridPress" in script
-    assert "function endHybridPress" in script
-    assert "pressTimer=setTimeout" in script
+    assert "inputMode:'separate'" in script
+    assert "PTT_HOLD_MS" not in script
+    assert "beginHybridPress" not in script
+    assert "endHybridPress" not in script
+    assert "pressTimer" not in script
     assert "activeInputMode='auto'" in script
     assert "activeInputMode='ptt'" in script
     assert "createSession(true)" in script
@@ -136,17 +136,20 @@ def test_single_button_supports_continuous_mode_and_push_to_talk():
     mic_action = script.split("async function micAction", 1)[1].split("async function beginPtt", 1)[0]
     assert mic_action.index("await prepareMicrophonePermission()") < mic_action.index("await startListening(null,false,true)")
     assert "activeInputMode='idle'" in mic_action
-    assert "버튼을 다시 클릭하면 연속대화가 시작됩니다" in mic_action
+    assert "연속 대화 버튼을 다시 누르면 시작됩니다" in mic_action
     assert "navigator.permissions" not in script
     assert "permissionStream.getTracks().forEach" in script
     assert "return false" in script
     assert "startListening(null,true,false)" in script
     assert "startListening(null,false,true)" in script
     assert 'id="input-mode"' in page
-    assert 'value="hybrid">클릭: 연속대화 · 길게 누름: PTT' in page
+    assert 'value="separate">분리형 · 기본 PTT' in page
+    assert 'id="continuous-mode"' in page
+    assert 'id="end-session"' in page
+    assert "$('#continuous-mode').addEventListener('click'" in script
+    assert "control.addEventListener('pointerdown',event=>beginPtt(event)" in script
     assert 'class="input-guide"' not in page
-    assert '클릭: 연속대화 · 길게 누르기: PTT · 종료: 세션 종료' in page
-    assert '종료하려면 아래 세션 종료를 누르세요' in page
+    assert page.index('id="mic"') < page.index('class="session-actions"') < page.index('class="logs"')
     assert "syncInputGuides()" in script
 
 
