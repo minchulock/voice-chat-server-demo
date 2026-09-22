@@ -145,13 +145,17 @@ def test_push_to_talk_and_continuous_mode_use_separate_controls():
     assert 'id="input-mode"' in page
     assert 'value="separate">분리형 · 기본 PTT' in page
     assert 'id="continuous-mode"' in page
-    assert 'id="end-session"' in page
+    assert 'id="end-session"' not in page
+    assert 'id="voice-end"' not in page
     assert "$('#continuous-mode').addEventListener('click'" in script
+    assert "toggleContinuousMode()" in script
+    assert "if(sessionActive&&activeInputMode==='auto'){await endSession();return}" in script
+    assert "autoActive?'대화 종료':'연속 대화'" in script
     assert "control.addEventListener('pointerdown',event=>handlePttDown(event)" in script
     assert 'class="input-guide"' not in page
     assert page.index('class="voice-dock"') < page.index('class="logs"')
     dock = page.split('class="voice-dock"', 1)[1].split('</div>', 1)[0]
-    assert dock.index('id="mic"') < dock.index('id="continuous-mode"') < dock.index('id="end-session"')
+    assert dock.index('id="mic"') < dock.index('id="continuous-mode"')
     assert dock.count('class="action-icon"') == 2
     assert '<svg viewBox="0 0 24 24"' in dock
     assert 'class="voice-mode-dock"' in page
@@ -174,6 +178,7 @@ def test_ptt_cancels_auto_mode_and_only_auto_mode_uses_voice_barge_in():
     assert "if(!settings.bargeIn||activeInputMode!=='auto')" in play_blob
     assert ".voice-dock" in stylesheet
     assert ".voice-mode-dock" in stylesheet
+    assert "box-shadow:0 9px" not in stylesheet
 
 
 def test_question_guide_is_inside_empty_conversation_and_removed_on_first_message():
