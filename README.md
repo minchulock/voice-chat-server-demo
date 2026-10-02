@@ -280,6 +280,12 @@ sudo nginx -t
 sudo systemctl status voice-chat nginx
 ```
 
+Agent V2 SSE 단계별 처리 시간은 API 키나 답변 본문 없이 구조화 로그로 기록됩니다. 동일한 `request_id`를 기준으로 첫 이벤트, 첫 텍스트, 최종 청크, 완료 상태와 스트림 종료 시간을 확인할 수 있습니다.
+
+```bash
+sudo journalctl -u voice-chat -n 200 --no-pager | grep AGENT_V2_SSE
+```
+
 브라우저 마이크가 열리지 않는 경우:
 
 1. 접속 주소가 HTTPS인지 확인합니다.

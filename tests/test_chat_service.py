@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 
 from app.config import load_settings
@@ -131,9 +133,10 @@ async def test_agent_v2_stream_reuses_history_and_extracts_final_artifact(monkey
 
 
 @pytest.mark.asyncio
-async def test_agent_v2_stops_at_final_artifact_chunk(monkeypatch):
+async def test_agent_v2_stops_at_final_artifact_chunk(monkeypatch, caplog):
     monkeypatch.setenv("CLOVA_API_KEY", "test-key")
     monkeypatch.setattr(chat.httpx, "AsyncClient", StopConditionClient)
+    caplog.set_level(logging.INFO, logger="uvicorn.error")
     StopConditionResponse.consumed_tail = False
     StopConditionResponse.events = [
         'data: {"jsonrpc":"2.0","result":{"artifactUpdate":{"contextId":"ctx-final","artifact":{"parts":[{"text":"최종 답변"}]},"lastChunk":true}}}'
@@ -144,12 +147,20 @@ async def test_agent_v2_stops_at_final_artifact_chunk(monkeypatch):
     assert answer == "최종 답변"
     assert context_id == "ctx-final"
     assert StopConditionResponse.consumed_tail is False
+    messages = "\n".join(record.getMessage() for record in caplog.records)
+    assert "milestone=request_start" in messages
+    assert "milestone=first_event" in messages
+    assert "milestone=first_text" in messages
+    assert "milestone=last_chunk" in messages
+    assert "milestone=stream_end" in messages
+    assert "reason=last_chunk" in messages
 
 
 @pytest.mark.asyncio
-async def test_agent_v2_stops_at_completed_status(monkeypatch):
+async def test_agent_v2_stops_at_completed_status(monkeypatch, caplog):
     monkeypatch.setenv("CLOVA_API_KEY", "test-key")
     monkeypatch.setattr(chat.httpx, "AsyncClient", StopConditionClient)
+    caplog.set_level(logging.INFO, logger="uvicorn.error")
     StopConditionResponse.consumed_tail = False
     StopConditionResponse.events = [
         'data: {"jsonrpc":"2.0","result":{"artifactUpdate":{"contextId":"ctx-complete","artifact":{"parts":[{"text":"완료 답변"}]}}}}',
@@ -161,6 +172,10 @@ async def test_agent_v2_stops_at_completed_status(monkeypatch):
     assert answer == "완료 답변"
     assert context_id == "ctx-complete"
     assert StopConditionResponse.consumed_tail is False
+    messages = "\n".join(record.getMessage() for record in caplog.records)
+    assert "milestone=completed" in messages
+    assert "milestone=stream_end" in messages
+    assert "reason=completed" in messages
 
 
 @pytest.mark.asyncio
