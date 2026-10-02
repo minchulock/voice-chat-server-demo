@@ -101,16 +101,20 @@ async def call_agent_v2(settings: Settings, session: Session, message: str, slug
                 result = event.get("result", {})
                 if found_context := find_nested(result, "contextId"):
                     context_id = str(found_context)
+                completed = find_nested(result, "state") == "TASK_STATE_COMPLETED"
                 update = result.get("artifactUpdate")
-                if not isinstance(update, dict):
-                    continue
-                artifact = update.get("artifact", {})
-                parts = artifact.get("parts", []) if isinstance(artifact, dict) else []
-                text = "".join(
-                    str(part.get("text", "")) for part in parts if isinstance(part, dict) and part.get("text")
-                ).strip()
-                if text:
-                    answer = text
+                if isinstance(update, dict):
+                    artifact = update.get("artifact", {})
+                    parts = artifact.get("parts", []) if isinstance(artifact, dict) else []
+                    text = "".join(
+                        str(part.get("text", "")) for part in parts if isinstance(part, dict) and part.get("text")
+                    ).strip()
+                    if text:
+                        answer = text
+                    if answer and update.get("lastChunk") is True:
+                        break
+                if completed:
+                    break
     if not answer:
         raise ValueError("Agent v2 SSE 응답에서 최종 artifactUpdate 답변을 찾지 못했습니다.")
     return answer, context_id

@@ -40,6 +40,42 @@ class FakeClient:
         return FakeStreamContext()
 
 
+class StopConditionResponse:
+    events = []
+    consumed_tail = False
+
+    def raise_for_status(self):
+        return None
+
+    async def aiter_lines(self):
+        for event in self.events:
+            yield event
+        self.__class__.consumed_tail = True
+        raise AssertionError("Agent v2 완료 이후의 SSE 이벤트를 소비했습니다.")
+
+
+class StopConditionContext:
+    async def __aenter__(self):
+        return StopConditionResponse()
+
+    async def __aexit__(self, *_):
+        return None
+
+
+class StopConditionClient:
+    def __init__(self, **_):
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *_):
+        return None
+
+    def stream(self, *_args, **_kwargs):
+        return StopConditionContext()
+
+
 class FakeV1Response:
     def raise_for_status(self):
         return None
@@ -92,6 +128,39 @@ async def test_agent_v2_stream_reuses_history_and_extracts_final_artifact(monkey
     assert "kind" not in message["parts"][0]
     assert answer == "법령 답변"
     assert context_id == "ctx-1"
+
+
+@pytest.mark.asyncio
+async def test_agent_v2_stops_at_final_artifact_chunk(monkeypatch):
+    monkeypatch.setenv("CLOVA_API_KEY", "test-key")
+    monkeypatch.setattr(chat.httpx, "AsyncClient", StopConditionClient)
+    StopConditionResponse.consumed_tail = False
+    StopConditionResponse.events = [
+        'data: {"jsonrpc":"2.0","result":{"artifactUpdate":{"contextId":"ctx-final","artifact":{"parts":[{"text":"최종 답변"}]},"lastChunk":true}}}'
+    ]
+    answer, context_id = await chat.call_agent_v2(
+        load_settings(), SessionStore().create(), "질문", "agent-slug", False
+    )
+    assert answer == "최종 답변"
+    assert context_id == "ctx-final"
+    assert StopConditionResponse.consumed_tail is False
+
+
+@pytest.mark.asyncio
+async def test_agent_v2_stops_at_completed_status(monkeypatch):
+    monkeypatch.setenv("CLOVA_API_KEY", "test-key")
+    monkeypatch.setattr(chat.httpx, "AsyncClient", StopConditionClient)
+    StopConditionResponse.consumed_tail = False
+    StopConditionResponse.events = [
+        'data: {"jsonrpc":"2.0","result":{"artifactUpdate":{"contextId":"ctx-complete","artifact":{"parts":[{"text":"완료 답변"}]}}}}',
+        'data: {"jsonrpc":"2.0","result":{"statusUpdate":{"contextId":"ctx-complete","status":{"state":"TASK_STATE_COMPLETED"}}}}',
+    ]
+    answer, context_id = await chat.call_agent_v2(
+        load_settings(), SessionStore().create(), "질문", "agent-slug", False
+    )
+    assert answer == "완료 답변"
+    assert context_id == "ctx-complete"
+    assert StopConditionResponse.consumed_tail is False
 
 
 @pytest.mark.asyncio
