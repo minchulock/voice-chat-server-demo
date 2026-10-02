@@ -28,6 +28,7 @@ Browser ← sentence prefetch audio/SSE ← Speaker
 - WAV 파일을 디스크에 저장하지 않는 메모리 오디오 전송
 - CLOVA STT API 동기 전사
 - Agent v1 API(A2A, 기본 선택), Agent v2 API(A2A 1.0), Model API 선택
+- API별 멀티턴 설정 저장: Agent v1·v2 기본 OFF, Model API 기본 ON
 - 구조화 응답의 `display_text`는 화면에, `speech_text`는 TTS에 분리 전달
 - Agent 응답 대기 애니메이션
 - Session 기반 멀티턴 문맥

@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
-from app.main import app
+from app.main import app, resolve_use_context
+from app.schemas import ChatRequest
 
 
 client = TestClient(app)
@@ -41,3 +42,12 @@ def test_security_headers_are_present():
     response = client.get("/voice.html")
     assert response.headers["x-content-type-options"] == "nosniff"
     assert "microphone=(self)" in response.headers["permissions-policy"]
+
+
+def test_chat_context_defaults_are_resolved_by_provider():
+    common = {"session_id": "session-1234", "message": "안녕하세요"}
+    assert resolve_use_context(ChatRequest(**common, provider="agent_v1")) is False
+    assert resolve_use_context(ChatRequest(**common, provider="agent_v2")) is False
+    assert resolve_use_context(ChatRequest(**common, provider="model")) is True
+    assert resolve_use_context(ChatRequest(**common, provider="agent_v2", use_context=True)) is True
+    assert resolve_use_context(ChatRequest(**common, provider="model", use_context=False)) is False

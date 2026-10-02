@@ -27,6 +27,10 @@ app = FastAPI(title="Voice Chat Server Demo", version="1.0.0", docs_url=None, re
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
 
+def resolve_use_context(payload: ChatRequest) -> bool:
+    return payload.use_context if payload.use_context is not None else payload.provider == "model"
+
+
 @app.middleware("http")
 async def same_origin_and_security_headers(request: Request, call_next):
     if request.url.path.startswith("/api/"):
@@ -101,17 +105,18 @@ async def chat(payload: ChatRequest):
     session = sessions.get(payload.session_id)
     if not session:
         raise HTTPException(404, "세션을 찾을 수 없습니다. 새 세션을 시작하세요.")
+    use_context = resolve_use_context(payload)
     started = time.perf_counter()
     try:
         if payload.provider == "agent_v1":
             answer, chat_session_id = await call_agent_v1(
-                settings, session, payload.message, payload.agent_v1_slug or settings.agent_v1_slug, payload.use_context
+                settings, session, payload.message, payload.agent_v1_slug or settings.agent_v1_slug, use_context
             )
             if chat_session_id is not None:
                 session.agent_v1_chat_session_id = chat_session_id
         elif payload.provider == "agent_v2":
             answer, context_id = await call_agent_v2(
-                settings, session, payload.message, payload.agent_v2_slug or settings.agent_v2_slug, payload.use_context
+                settings, session, payload.message, payload.agent_v2_slug or settings.agent_v2_slug, use_context
             )
             if context_id:
                 session.agent_v2_context_id = context_id
@@ -119,7 +124,7 @@ async def chat(payload: ChatRequest):
             answer = await call_model(
                 settings, session, payload.message, payload.model_name or settings.model_name,
                 settings.model_system_prompt if payload.system_prompt is None else payload.system_prompt,
-                payload.use_context,
+                use_context,
             )
     except ValueError as exc:
         raise HTTPException(502, str(exc)) from exc

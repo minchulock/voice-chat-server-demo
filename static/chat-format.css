@@ -104,6 +104,8 @@
 .voice-mode-dock button b { font-size: 14px; }
 .voice-mode-dock button small { color: inherit; opacity: .72; font-size: 10px; }
 .voice-mode > footer > div { display: flex; gap: 8px; }
+.context-check > span { display: flex; flex-direction: column; gap: 3px; }
+.context-check > span small { color: #7d8da3; font-size: 11px; }
 
 .voice-ptt-guide {
   display: flex;

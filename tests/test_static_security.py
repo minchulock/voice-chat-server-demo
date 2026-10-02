@@ -20,7 +20,7 @@ def test_no_local_model_runtime_is_shipped():
 def test_browser_defaults_match_server_defaults():
     script = (ROOT / "static" / "voice.js").read_text(encoding="utf-8")
     assert "provider:'agent_v1'" in script
-    assert "settingsRevision:4" in script
+    assert "settingsRevision:5" in script
     assert "saved.settingsRevision!==DEFAULTS.settingsRevision" in script
     assert "agentV1Slug:'woLbP7utQsqiUIQtP0DMtQ'" in script
     assert "agentV2Slug:'lK5muLmzRZ2bOC9jx4JDQg'" in script
@@ -29,6 +29,11 @@ def test_browser_defaults_match_server_defaults():
     assert "agent_v1_slug:settings.agentV1Slug" in script
     assert "modelName:'google/gemma-4-31B-it'" in script
     assert "ttsSpeed:1.6" in script
+    assert "agentV1UseContext:false" in script
+    assert "agentV2UseContext:false" in script
+    assert "modelUseContext:true" in script
+    assert "use_context:contextEnabled(settings.provider)" in script
+    assert "provider==='model'?'Model API 기본 ON':'Agent API 기본 OFF'" in script
     assert "voiceChatSettingsV2" in script
 
 
@@ -41,6 +46,9 @@ def test_answer_api_settings_have_strict_hidden_rule():
     assert 'value="agent_v1"' in page
     assert 'id="agent-v1-row"' in page
     assert 'value="agent_v2"' in page
+    assert 'id="use-context"' in page
+    assert 'id="context-default"' in page
+    assert "멀티턴 대화" in page
 
 
 def test_barge_in_monitor_is_ready_before_tts_playback():
