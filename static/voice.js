@@ -41,7 +41,7 @@ const DEFAULTS={settingsRevision:4,inputMode:'separate',vadThreshold:.018,silenc
 let settings=loadSettings(),sessionId='',turn=0,sessionActive=false,busy=false,transitioning=false,generation=0;
 let mediaStream=null,mediaRecorder=null,audioContext=null,analyser=null,meterFrame=0,recordTimer=0,lastVoice=0,heardVoice=false,recordParts=[];
 let turnAbort=null,nextTurnTimer=0,playbackUrl='',playbackUnlocked=false,manualSpeechAbort=null,manualSpeechButton=null;
-let pttHeld=false,pttStarting=false,micPermissionReady=false,activeInputMode='idle',ttsPlaying=false,settlePlayback=null;
+let pttHeld=false,pttStarting=false,pttPressedAt=0,micPermissionReady=false,activeInputMode='idle',ttsPlaying=false,settlePlayback=null;
 const AUDIO_CONSTRAINTS={channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true};
 const mic=$('#mic'),audio=$('#audio'),conversation=$('#conversation'),errorBox=$('#error'),caption=$('#caption'),title=$('#control-title'),hint=$('#control-hint'),logView=$('#log');
 
@@ -70,9 +70,10 @@ async function endSession(){if(transitioning)return;transitioning=true;generatio
 async function health(){const status=await json(await api('SYSTEM','/api/health'));setPttDisabled(!status.ok);title.textContent=status.ok?'Push-to-Talk 준비 완료':'서버 확인이 필요합니다';hint.textContent=status.ok?'버튼이나 Space 키를 누른 상태로 말씀해 주세요':'서버 설정을 확인하세요';return status.ok}
 
 function supportedMime(){for(const type of ['audio/webm;codecs=opus','audio/mp4','audio/webm'])if(MediaRecorder.isTypeSupported(type))return type;return ''}
-async function openMedia(existing=null){mediaStream=existing||await navigator.mediaDevices.getUserMedia({audio:AUDIO_CONSTRAINTS});micPermissionReady=true;audioContext=new AudioContext();const source=audioContext.createMediaStreamSource(mediaStream);analyser=audioContext.createAnalyser();analyser.fftSize=2048;source.connect(analyser)}
-async function prepareMicrophonePermission(){if(micPermissionReady)return true;const permissionStream=await navigator.mediaDevices.getUserMedia({audio:AUDIO_CONSTRAINTS});permissionStream.getTracks().forEach(track=>track.stop());micPermissionReady=true;return false}
-async function stopMedia(stopRecorder=true){clearTimeout(recordTimer);cancelAnimationFrame(meterFrame);if(stopRecorder&&mediaRecorder?.state==='recording'){mediaRecorder.onstop=null;try{mediaRecorder.stop()}catch{}}mediaRecorder=null;if(mediaStream)mediaStream.getTracks().forEach(track=>track.stop());mediaStream=null;if(audioContext){try{await audioContext.close()}catch{}}audioContext=analyser=null;mic.classList.remove('recording')}
+function streamIsLive(stream){return Boolean(stream?.getAudioTracks().some(track=>track.readyState==='live'))}
+async function openMedia(existing=null){const reusable=existing||mediaStream;if(streamIsLive(reusable))mediaStream=reusable;else{if(audioContext)try{await audioContext.close()}catch{}audioContext=analyser=null;mediaStream=await navigator.mediaDevices.getUserMedia({audio:AUDIO_CONSTRAINTS})}micPermissionReady=true;if(audioContext?.state==='closed')audioContext=null;if(!audioContext){audioContext=new AudioContext();const source=audioContext.createMediaStreamSource(mediaStream);analyser=audioContext.createAnalyser();analyser.fftSize=2048;source.connect(analyser)}if(audioContext.state==='suspended')await audioContext.resume()}
+async function prepareMicrophonePermission(){if(micPermissionReady&&streamIsLive(mediaStream))return true;if(micPermissionReady)return true;mediaStream=await navigator.mediaDevices.getUserMedia({audio:AUDIO_CONSTRAINTS});micPermissionReady=true;return false}
+async function stopMedia(stopRecorder=true,releaseStream=true){clearTimeout(recordTimer);cancelAnimationFrame(meterFrame);if(stopRecorder&&mediaRecorder?.state==='recording'){mediaRecorder.onstop=null;try{mediaRecorder.stop()}catch{}}mediaRecorder=null;if(releaseStream){if(mediaStream)mediaStream.getTracks().forEach(track=>track.stop());mediaStream=null;if(audioContext){try{await audioContext.close()}catch{}}audioContext=analyser=null}mic.classList.remove('recording')}
 function drawMeter(level=0){const canvas=$('#meter'),ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);for(let i=0;i<32;i++){const h=5+Math.sin(i*.8+performance.now()/170)*5+level*42;ctx.fillStyle=`rgba(40,120,243,${.18+level*.7})`;ctx.fillRect(i*10,30-h/2,5,h)}$('#orb').style.setProperty('--level',level)}
 function monitorVad(started,finishOnSilence){const values=new Uint8Array(analyser.fftSize);analyser.getByteTimeDomainData(values);let sum=0;for(const value of values){const sample=(value-128)/128;sum+=sample*sample}const rms=Math.sqrt(sum/values.length);drawMeter(Math.min(1,rms*9));const now=performance.now();if(rms>settings.vadThreshold){heardVoice=true;lastVoice=now}if(finishOnSilence&&heardVoice&&now-lastVoice>settings.silenceMs){finishListening();return}if(now-started>settings.maxListenMs){finishListening();return}meterFrame=requestAnimationFrame(()=>monitorVad(started,finishOnSilence))}
 async function startListening(existing=null,force=false,finishOnSilence=false){
@@ -88,7 +89,7 @@ async function startListening(existing=null,force=false,finishOnSilence=false){
   recorder.ondataavailable=event=>{if(event.data.size)recordParts.push(event.data)};
   recorder.onstop=()=>processTurn(new Blob(recordParts,{type:recorder.mimeType||mime||'audio/webm'}),generation);
   const started=new Promise((resolve,reject)=>{recorder.addEventListener('start',resolve,{once:true});recorder.addEventListener('error',()=>reject(new Error('마이크 녹음을 시작하지 못했습니다.')),{once:true})});
-  recorder.start(100);await started;
+  recorder.start(100);await started;if(!finishOnSilence&&pttPressedAt)log('PTT','녹음 시작 준비 완료',`${Math.round(performance.now()-pttPressedAt)}ms`);
   setStage('vad','active','Listening');title.textContent='듣고 있어요';hint.textContent=finishOnSilence?'말을 마치면 자동 전송 · 종료는 아래 세션 종료':'버튼이나 Space 키를 놓으면 전송합니다';caption.textContent=finishOnSilence?'CLIENT · 자동 VAD가 음성을 감지합니다':'CLIENT · Push-to-Talk 녹음 중';mic.classList.add('recording');setPttDisabled(false);monitorVad(performance.now(),finishOnSilence);
 }
 function finishListening(){if(!mediaRecorder||mediaRecorder.state!=='recording')return;cancelAnimationFrame(meterFrame);mic.classList.remove('recording');mediaRecorder.stop()}
@@ -134,12 +135,12 @@ async function speak(answer,myGeneration,signal){const sentences=splitSentences(
 
 async function processTurn(blob,myGeneration){
   if(!heardVoice){
-    await stopMedia(false);busy=false;title.textContent='음성을 듣지 못했어요';
+    await stopMedia(false,activeInputMode!=='ptt');busy=false;title.textContent='음성을 듣지 못했어요';
     if(activeInputMode==='auto'){hint.textContent='다시 듣습니다';nextTurnTimer=setTimeout(()=>startListening(null,false,true),650)}
     else{hint.textContent='버튼이나 Space 키를 누른 상태로 말씀해 주세요';caption.textContent='Push-to-Talk · 발화 없음'}
     return;
   }
-  busy=true;setContinuousDisabled(activeInputMode!=='auto');await stopMedia(false);turnAbort=new AbortController();
+  busy=true;setContinuousDisabled(activeInputMode!=='auto');await stopMedia(false,activeInputMode!=='ptt');turnAbort=new AbortController();
   let waitBubble=null,answerBubble=null,failedStage='';
   try{
     setStage('vad','done','발화 완료');setStage('stt','active','전사 중');failedStage='stt';caption.textContent='SERVER · 오디오를 STT API로 전송합니다';
@@ -168,7 +169,7 @@ async function micAction(){if(busy||transitioning)return;unlockAudio();if(manual
 async function toggleContinuousMode(){if(sessionActive&&activeInputMode==='auto'){await endSession();return}await micAction()}
 
 function selectPttMode(){activeInputMode='ptt';clearTimeout(nextTurnTimer);nextTurnTimer=0;syncInputGuides();syncViews()}
-async function handlePttDown(event){if(event?.button!==undefined&&event.button!==0)return;event?.preventDefault();selectPttMode();if(ttsPlaying){stopPlayback();title.textContent='답변을 중단했습니다';hint.textContent='손을 뗀 뒤 다시 누르고 말씀하세요';caption.textContent='CLIENT · TTS 재생 중단 · Push-to-Talk 대기';log('PTT','TTS 답변 재생 중단','다시 누르면 녹음');return}if(busy||transitioning){title.textContent='처리 중입니다';hint.textContent='처리가 끝난 뒤 다시 누르고 말씀하세요';return}await beginPtt(event)}
+async function handlePttDown(event){if(event?.button!==undefined&&event.button!==0)return;event?.preventDefault();pttPressedAt=performance.now();selectPttMode();if(ttsPlaying){stopPlayback();title.textContent='답변을 중단했습니다';hint.textContent='손을 뗀 뒤 다시 누르고 말씀하세요';caption.textContent='CLIENT · TTS 재생 중단 · Push-to-Talk 대기';log('PTT','TTS 답변 재생 중단','다시 누르면 녹음');return}if(busy||transitioning){title.textContent='처리 중입니다';hint.textContent='처리가 끝난 뒤 다시 누르고 말씀하세요';return}await beginPtt(event)}
 async function beginPtt(event){if(pttHeld||pttStarting||busy||transitioning)return;if(event?.button!==undefined&&event.button!==0)return;event?.preventDefault();selectPttMode();if(manualSpeechButton)stopManualSpeech();pttHeld=true;pttStarting=true;title.textContent='마이크를 준비하고 있어요';hint.textContent='누른 상태로 기다린 뒤 말씀해 주세요';caption.textContent='CLIENT · Push-to-Talk 시작';unlockAudio();try{if(mediaRecorder?.state==='recording'){mediaRecorder.onstop=null;await stopMedia()}const permissionWasReady=await prepareMicrophonePermission();if(!permissionWasReady){pttHeld=false;title.textContent='마이크 권한이 허용됐어요';hint.textContent='이제 버튼이나 Space 키를 다시 누르고 말하세요';caption.textContent='CLIENT · 권한 설정 완료 · Push-to-Talk 대기';log('PTT','마이크 권한 설정 완료','다음 누름부터 녹음');return}if(!sessionId)await createSession(true);if(!sessionId||!pttHeld)return;if(!sessionActive)sessionActive=true;syncViews();await startListening(null,true,false);if(!pttHeld)finishListening()}finally{pttStarting=false}}
 function endPtt(event){if(!pttHeld)return;event?.preventDefault();pttHeld=false;if(mediaRecorder?.state==='recording')finishListening()}
 function editableTarget(target){return target instanceof HTMLElement&&(target.isContentEditable||['INPUT','TEXTAREA','SELECT'].includes(target.tagName))}

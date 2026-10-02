@@ -138,7 +138,13 @@ def test_push_to_talk_and_continuous_mode_use_separate_controls():
     assert "activeInputMode='idle'" in mic_action
     assert "연속 대화 버튼을 다시 누르면 시작됩니다" in mic_action
     assert "navigator.permissions" not in script
-    assert "permissionStream.getTracks().forEach" in script
+    assert "mediaStream=await navigator.mediaDevices.getUserMedia" in script
+    assert "function streamIsLive(stream)" in script
+    assert "stopMedia(false,activeInputMode!=='ptt')" in script
+    assert "async function stopMedia(stopRecorder=true,releaseStream=true)" in script
+    assert "if(releaseStream)" in script
+    assert "녹음 시작 준비 완료" in script
+    assert "performance.now()-pttPressedAt" in script
     assert "return false" in script
     assert "startListening(null,true,false)" in script
     assert "startListening(null,false,true)" in script
